@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Disable static optimization to prevent prerendering errors
+  // Standalone output for Railway deployment
   output: 'standalone',
 
   images: {
@@ -11,6 +11,7 @@ const nextConfig = {
       },
     ],
   },
+
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
@@ -20,8 +21,19 @@ const nextConfig = {
   // Skip trailing slash
   trailingSlash: false,
 
-  // Disable generateBuildId to use default
-  // This helps with Railway deployments
+  // Skip build-time error page generation to avoid <Html> import issues
+  generateBuildId: async () => {
+    return 'build-' + Date.now()
+  },
+
+  // Ignore build errors for error pages
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
 }
 
 module.exports = nextConfig
