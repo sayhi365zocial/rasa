@@ -1,0 +1,278 @@
+import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/auth/session'
+import { db } from '@/lib/db'
+import { DashboardShell } from '@/components/dashboard/DashboardShell'
+import { formatCurrency, formatDate } from '@/lib/utils'
+import { ReceiveCashButton } from '@/components/auditor/ReceiveCashButton'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+interface PageProps {
+  params: {
+    id: string
+  }
+}
+
+export default async function ClosingDetailPage({ params }: PageProps) {
+  const currentUser = await getCurrentUser()
+
+  if (!currentUser) {
+    redirect('/login')
+  }
+
+  if (currentUser.role !== 'AUDITOR' && currentUser.role !== 'ADMIN') {
+    redirect('/dashboard')
+  }
+
+  const user = await db.user.findUnique({
+    where: { id: currentUser.userId },
+  })
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const closing = await db.dailyClosing.findUnique({
+    where: { id: params.id },
+    include: {
+      branch: true,
+      submitter: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  })
+
+  if (!closing) {
+    redirect('/dashboard/auditor')
+  }
+
+  // Get audit log entries for this closing
+  const auditLogs = await db.auditLog.findMany({
+    where: {
+      entityType: 'DailyClosing',
+      entityId: closing.id,
+    },
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  })
+
+  return (
+    <DashboardShell
+      user={{
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        branch: null,
+      }}
+    >
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              รับเงินจากสาขา
+            </h2>
+            <p className="text-gray-600 mt-1">
+              {closing.branch.branchName} - {formatDate(closing.closingDate)}
+            </p>
+          </div>
+          <a
+            href="/dashboard/auditor"
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+          >
+            ← กลับ
+          </a>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Branch Information */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              ข้อมูลสาขา
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-sm text-gray-500">สาขา</div>
+                <div className="text-base font-medium text-gray-900 mt-1">
+                  {closing.branch.branchName}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">รหัสสาขา</div>
+                <div className="text-base font-medium text-gray-900 mt-1">
+                  {closing.branch.branchCode}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">ที่อยู่</div>
+                <div className="text-base font-medium text-gray-900 mt-1">
+                  {closing.branch.address}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">ส่งโดย</div>
+                <div className="text-base font-medium text-gray-900 mt-1">
+                  {closing.submitter.firstName} {closing.submitter.lastName}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Cash Details */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              รายละเอียดเงินสด
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">เงินสดนับจริง</span>
+                <span className="text-lg font-semibold text-gray-900">
+                  {formatCurrency(closing.handwrittenCashCount.toNumber())}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">- ค่าใช้จ่าย</span>
+                <span className="text-lg font-semibold text-red-600">
+                  {formatCurrency(closing.handwrittenExpenses.toNumber())}
+                </span>
+              </div>
+              <div className="border-t border-gray-200 pt-3">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-900">เงินสดสุทธิที่ต้องรับ</span>
+                  <span className="text-2xl font-bold text-blue-600">
+                    {formatCurrency(closing.handwrittenNetCash.toNumber())}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Status */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">สถานะ</h3>
+            <div className="flex items-center justify-between">
+              {closing.status === 'SUBMITTED' ? (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                  รอรับเงิน
+                </span>
+              ) : closing.status === 'CASH_RECEIVED' ? (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                  รับเงินแล้ว
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  นำฝากแล้ว
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Timeline */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">วันที่</h3>
+            <div className="space-y-3">
+              <div>
+                <div className="text-xs text-gray-500">วันที่ปิดยอด</div>
+                <div className="text-sm font-medium text-gray-900 mt-1">
+                  {formatDate(closing.closingDate)}
+                </div>
+              </div>
+              {closing.submittedAt && (
+                <div>
+                  <div className="text-xs text-gray-500">วันที่ส่งยอด</div>
+                  <div className="text-sm font-medium text-gray-900 mt-1">
+                    {formatDate(closing.submittedAt)}
+                  </div>
+                </div>
+              )}
+              {closing.cashReceivedAt && (
+                <div>
+                  <div className="text-xs text-gray-500">วันที่รับเงิน</div>
+                  <div className="text-sm font-medium text-gray-900 mt-1">
+                    {formatDate(closing.cashReceivedAt)}
+                  </div>
+                </div>
+              )}
+              {closing.completedAt && (
+                <div>
+                  <div className="text-xs text-gray-500">วันที่นำฝาก</div>
+                  <div className="text-sm font-medium text-gray-900 mt-1">
+                    {formatDate(closing.completedAt)}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Button */}
+          {closing.status === 'SUBMITTED' && (
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <ReceiveCashButton
+                closingId={closing.id}
+                amount={closing.handwrittenNetCash.toNumber()}
+              />
+            </div>
+          )}
+
+          {closing.status === 'CASH_RECEIVED' && (
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <a
+                href={`/dashboard/auditor/deposits/new?closingId=${closing.id}`}
+                className="block w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white text-center font-medium rounded-md"
+              >
+                นำฝากธนาคาร
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Audit Log */}
+      {auditLogs.length > 0 && (
+        <div className="mt-8 bg-white border border-gray-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            ประวัติการดำเนินการ
+          </h3>
+          <div className="space-y-3">
+            {auditLogs.map((log) => (
+              <div
+                key={log.id}
+                className="flex items-start space-x-3 text-sm border-l-2 border-gray-300 pl-4"
+              >
+                <div className="flex-1">
+                  <div className="text-gray-900 font-medium">{log.action}</div>
+                  {log.remark && (
+                    <div className="text-gray-500 mt-1">{log.remark}</div>
+                  )}
+                  <div className="text-gray-400 text-xs mt-1">
+                    {log.user.firstName} {log.user.lastName} •{' '}
+                    {formatDate(log.createdAt)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </DashboardShell>
+  )
+}
