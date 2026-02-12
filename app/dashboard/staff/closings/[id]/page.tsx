@@ -145,7 +145,7 @@ export default async function ClosingDetailPage({
             </h3>
             <p className="text-sm text-orange-800 mb-2">
               ยอดบัตรเครดิต POS กับ EDC ต่างกัน{' '}
-              {formatCurrency(closing.posCreditVsEdcDiff.toNumber())} บาท
+              {formatCurrency(closing.posCreditVsEdcDiff?.toNumber() || 0)} บาท
             </p>
             {closing.discrepancyRemark && (
               <div className="mt-3 bg-white rounded p-3">
@@ -218,7 +218,7 @@ export default async function ClosingDetailPage({
             <div>
               <div className="text-sm text-gray-600 mb-1">ค่าเฉลี่ยต่อบิล</div>
               <div className="text-lg font-semibold text-gray-900">
-                {formatCurrency(closing.posAvgPerBill.toNumber())}
+                {formatCurrency(closing.posAvgPerBill?.toNumber() || 0)}
               </div>
             </div>
             <div>
@@ -401,14 +401,6 @@ export default async function ClosingDetailPage({
                 <div className="text-gray-600 mb-1">วันที่ส่งยอด</div>
                 <div className="text-gray-900">
                   {formatDateTime(closing.submittedAt)}
-                </div>
-              </div>
-            )}
-            {closing.approvedAt && (
-              <div>
-                <div className="text-gray-600 mb-1">วันที่อนุมัติ</div>
-                <div className="text-gray-900">
-                  {formatDateTime(closing.approvedAt)}
                 </div>
               </div>
             )}

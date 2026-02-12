@@ -83,6 +83,11 @@ export interface EDCOCRData {
   breakdown: EDCBreakdownItem[]
 }
 
+// Aliases for component usage
+export type POSData = POSOCRData
+export type HandwrittenData = HandwrittenOCRData
+export type EDCData = EDCOCRData
+
 export interface DepositSlipOCRData {
   depositAmount: number
   depositDate: string

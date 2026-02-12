@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { verifyToken } from '@/lib/auth/jwt'
 
-const PUBLIC_ROUTES = ['/login']
+const PUBLIC_ROUTES = ['/login', '/api/auth/login']
 const AUTH_ROUTES = ['/login']
 
 export function middleware(request: NextRequest) {
@@ -16,41 +15,22 @@ export function middleware(request: NextRequest) {
   // Get token from cookie
   const token = request.cookies.get('authToken')?.value
 
-  // Redirect to login if no token
-  if (!token) {
+  // Redirect to login if no token (for page routes only, not API)
+  if (!token && !pathname.startsWith('/api/')) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('from', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Verify token
-  try {
-    const payload = verifyToken(token)
-
-    // Redirect authenticated users away from auth pages
-    if (AUTH_ROUTES.some((route) => pathname.startsWith(route))) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-
-    // Attach user info to headers for API routes
-    const requestHeaders = new Headers(request.headers)
-    requestHeaders.set('X-User-Id', payload.userId)
-    requestHeaders.set('X-User-Role', payload.role)
-    if (payload.branchId) {
-      requestHeaders.set('X-User-Branch-Id', payload.branchId)
-    }
-
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    })
-  } catch (error) {
-    // Invalid token - clear cookie and redirect
-    const response = NextResponse.redirect(new URL('/login', request.url))
-    response.cookies.delete('authToken')
-    return response
+  // For API routes without token, let the API handle the 401
+  if (!token && pathname.startsWith('/api/')) {
+    return NextResponse.next()
   }
+
+  // Note: JWT verification moved to getCurrentUser() in lib/auth/session.ts
+  // to avoid Edge Runtime compatibility issues with jsonwebtoken library
+
+  return NextResponse.next()
 }
 
 export const config = {
