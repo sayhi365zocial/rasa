@@ -87,11 +87,24 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
 
     // Validate required fields
-    if (!data.closingDate || !data.branchId) {
+    if (!data.closingDate) {
       return NextResponse.json(
         {
           success: false,
-          error: { code: 'VALIDATION_ERROR', message: 'Missing required fields' },
+          error: { code: 'VALIDATION_ERROR', message: 'Missing closingDate' },
+        },
+        { status: 400 }
+      )
+    }
+
+    // Use branchId from user session (STORE_STAFF can only create for their branch)
+    const branchId = user.role === 'STORE_STAFF' ? user.branchId : (data.branchId || user.branchId)
+
+    if (!branchId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: { code: 'VALIDATION_ERROR', message: 'User has no branch assigned' },
         },
         { status: 400 }
       )
@@ -101,7 +114,7 @@ export async function POST(request: NextRequest) {
     const existing = await db.dailyClosing.findUnique({
       where: {
         branchId_closingDate: {
-          branchId: data.branchId,
+          branchId: branchId,
           closingDate: new Date(data.closingDate),
         },
       },
@@ -125,7 +138,7 @@ export async function POST(request: NextRequest) {
     const closing = await db.dailyClosing.create({
       data: {
         closingDate: new Date(data.closingDate),
-        branchId: data.branchId,
+        branchId: branchId,
         submittedBy: user.userId,
         status: 'DRAFT',
 
