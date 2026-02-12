@@ -1,0 +1,248 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========================================
+// AUTHENTICATION & USER MANAGEMENT
+// ========================================
+
+enum UserRole {
+  STORE_STAFF
+  AUDITOR
+  OWNER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  username      String      @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  phoneNumber   String?
+  role          UserRole
+  status        UserStatus  @default(ACTIVE)
+
+  // Relations
+  branchId      String?     // NULL for Owner/Admin, Required for Store Staff
+  branch        Branch?     @relation(fields: [branchId], references: [id])
+
+  // Activity tracking
+  dailyClosings DailyClosing[]
+  cashReceived  DailyClosing[] @relation("CashReceiver")
+  deposits      Deposit[]
+  auditLogs     AuditLog[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  lastLoginAt   DateTime?
+
+  @@index([email])
+  @@index([role, status])
+  @@index([branchId])
+}
+
+// ========================================
+// BRANCH MANAGEMENT
+// ========================================
+
+enum BranchStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Branch {
+  id            String        @id @default(cuid())
+  branchCode    String        @unique
+  branchName    String
+  address       String
+  phoneNumber   String?
+  status        BranchStatus  @default(ACTIVE)
+
+  // Relations
+  users         User[]
+  dailyClosings DailyClosing[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([branchCode])
+  @@index([status])
+}
+
+// ========================================
+// DAILY CLOSING PROCESS
+// ========================================
+
+enum ClosingStatus {
+  DRAFT
+  SUBMITTED
+  CASH_RECEIVED
+  DEPOSITED
+  COMPLETED
+  REJECTED
+}
+
+model DailyClosing {
+  id            String         @id @default(cuid())
+
+  // Basic Info
+  closingDate   DateTime       @db.Date
+  branchId      String
+  branch        Branch         @relation(fields: [branchId], references: [id])
+  submittedBy   String
+  submitter     User           @relation(fields: [submittedBy], references: [id])
+  status        ClosingStatus  @default(DRAFT)
+
+  // ========== POS DATA ==========
+  posImageUrl       String?
+  posTotalSales     Decimal    @db.Decimal(10, 2)
+  posCash           Decimal    @db.Decimal(10, 2)
+  posCredit         Decimal    @db.Decimal(10, 2)
+  posTransfer       Decimal    @db.Decimal(10, 2)
+  posExpenses       Decimal    @db.Decimal(10, 2)
+
+  posStartTime      String?
+  posEndTime        String?
+  posBillCount      Int?
+  posAvgPerBill     Decimal?   @db.Decimal(10, 2)
+
+  // ========== HANDWRITTEN SUMMARY ==========
+  handwrittenImageUrl   String?
+  handwrittenCashCount  Decimal    @db.Decimal(10, 2)
+  handwrittenExpenses   Decimal    @db.Decimal(10, 2)
+  handwrittenExpensesList Json?
+  handwrittenNetCash    Decimal    @db.Decimal(10, 2)
+
+  // ========== EDC SLIP ==========
+  edcImageUrl       String?
+  edcTotalAmount    Decimal    @db.Decimal(10, 2)
+  edcSettlementDate DateTime?
+  edcBatchNumber    String?
+  edcBreakdown      Json?
+
+  // ========== VALIDATION & DISCREPANCY ==========
+  hasDiscrepancy        Boolean   @default(false)
+  discrepancyRemark     String?   @db.Text
+  posCreditVsEdcDiff    Decimal?  @db.Decimal(10, 2)
+  posTotalVsHandwrittenDiff Decimal? @db.Decimal(10, 2)
+
+  // ========== AUDITOR PROCESS ==========
+  cashReceivedBy    String?
+  cashReceiver      User?      @relation("CashReceiver", fields: [cashReceivedBy], references: [id])
+  cashReceivedAt    DateTime?
+
+  // Relations
+  deposit           Deposit?
+
+  // Timestamps
+  submittedAt       DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@unique([branchId, closingDate])
+  @@index([status, closingDate])
+  @@index([branchId, closingDate])
+  @@index([submittedBy])
+}
+
+// ========================================
+// BANK DEPOSIT
+// ========================================
+
+model Deposit {
+  id                String        @id @default(cuid())
+
+  dailyClosingId    String        @unique
+  dailyClosing      DailyClosing  @relation(fields: [dailyClosingId], references: [id])
+
+  depositSlipUrl    String
+  depositAmount     Decimal       @db.Decimal(10, 2)
+  depositDate       DateTime      @db.Date
+  depositTime       String?
+  bankName          String?
+  bankBranch        String?
+  accountNumber     String?
+
+  amountMatched     Boolean       @default(false)
+  varianceAmount    Decimal?      @db.Decimal(10, 2)
+  varianceReason    String?       @db.Text
+
+  depositedBy       String
+  depositor         User          @relation(fields: [depositedBy], references: [id])
+  depositedAt       DateTime      @default(now())
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([depositDate])
+  @@index([depositedBy])
+}
+
+// ========================================
+// AUDIT LOG
+// ========================================
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  STATUS_CHANGE
+  APPROVE
+  REJECT
+}
+
+model AuditLog {
+  id            String      @id @default(cuid())
+
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  action        AuditAction
+  entityType    String
+  entityId      String
+
+  fieldName     String?
+  oldValue      String?     @db.Text
+  newValue      String?     @db.Text
+
+  ipAddress     String?
+  userAgent     String?     @db.Text
+  remark        String?     @db.Text
+
+  createdAt     DateTime    @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+// ========================================
+// SYSTEM CONFIGURATION
+// ========================================
+
+model SystemConfig {
+  id            String      @id @default(cuid())
+  key           String      @unique
+  value         String      @db.Text
+  description   String?     @db.Text
+  dataType      String      @default("string")
+
+  updatedAt     DateTime    @updatedAt
+  createdAt     DateTime    @default(now())
+
+  @@index([key])
+}
