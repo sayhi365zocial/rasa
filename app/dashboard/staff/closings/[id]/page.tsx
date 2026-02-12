@@ -4,6 +4,9 @@ import { db } from '@/lib/db'
 import { STATUS_LABELS, STATUS_COLORS } from '@/lib/types'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function ClosingDetailPage({
   params,
 }: {

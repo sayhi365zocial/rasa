@@ -5,6 +5,9 @@ import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { STATUS_LABELS, STATUS_COLORS } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function StaffDashboardPage() {
   const currentUser = await getCurrentUser()
 
