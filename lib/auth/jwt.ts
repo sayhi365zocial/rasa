@@ -1,11 +1,17 @@
 import jwt from 'jsonwebtoken'
 import { UserRole } from '@prisma/client'
 
-const JWT_SECRET = process.env.JWT_SECRET!
 const JWT_EXPIRES_IN = '7d'
 
-if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  throw new Error('JWT_SECRET must be at least 32 characters long')
+// Lazy load and validate JWT_SECRET only when needed (runtime, not build time)
+function getJWTSecret(): string {
+  const secret = process.env.JWT_SECRET
+
+  if (!secret || secret.length < 32) {
+    throw new Error('JWT_SECRET must be at least 32 characters long')
+  }
+
+  return secret
 }
 
 export interface JWTPayload {
@@ -18,14 +24,14 @@ export interface JWTPayload {
 }
 
 export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, getJWTSecret(), {
     expiresIn: JWT_EXPIRES_IN,
   })
 }
 
 export function verifyToken(token: string): JWTPayload {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload
+    return jwt.verify(token, getJWTSecret()) as JWTPayload
   } catch (error) {
     throw new Error('Invalid or expired token')
   }
