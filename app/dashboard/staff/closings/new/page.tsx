@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { POSData, HandwrittenData, EDCData } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 type UploadedFile = {
   file: File
   preview: string
