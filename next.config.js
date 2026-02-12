@@ -21,19 +21,24 @@ const nextConfig = {
   // Skip trailing slash
   trailingSlash: false,
 
-  // Skip build-time error page generation to avoid <Html> import issues
+  // Custom build ID for cache busting
   generateBuildId: async () => {
     return 'build-' + Date.now()
   },
 
-  // Ignore build errors for error pages
-  typescript: {
-    ignoreBuildErrors: false,
+  // Disable static error pages generation completely
+  // This prevents the /_error route from being created
+  async redirects() {
+    return []
   },
 
-  eslint: {
-    ignoreDuringBuilds: false,
+  async rewrites() {
+    return []
   },
+
+  // Skip static page generation for error pages
+  skipTrailingSlashRedirect: true,
+  skipMiddlewareUrlNormalize: true,
 }
 
 module.exports = nextConfig
