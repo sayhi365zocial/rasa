@@ -137,14 +137,42 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Forgot Password Link */}
-          <div className="mt-4 text-center">
-            <a
-              href="#"
-              className="text-sm text-blue-600 hover:text-blue-700"
-            >
-              ลืมรหัสผ่าน?
-            </a>
+        </div>
+
+        {/* Demo Credentials */}
+        <div className="mt-6 bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            ทดสอบระบบ (Demo Accounts)
+          </h3>
+          <div className="space-y-2 text-xs">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+              <div>
+                <div className="font-medium text-gray-900">Store Staff (Rama9)</div>
+                <div className="text-gray-600">staff.br001@mermed.com</div>
+              </div>
+              <code className="bg-gray-100 px-2 py-1 rounded text-gray-700">Staff@2026</code>
+            </div>
+            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+              <div>
+                <div className="font-medium text-gray-900">Auditor</div>
+                <div className="text-gray-600">auditor@mermed.com</div>
+              </div>
+              <code className="bg-gray-100 px-2 py-1 rounded text-gray-700">Auditor@2026</code>
+            </div>
+            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+              <div>
+                <div className="font-medium text-gray-900">Owner</div>
+                <div className="text-gray-600">owner@mermed.com</div>
+              </div>
+              <code className="bg-gray-100 px-2 py-1 rounded text-gray-700">Owner@2026</code>
+            </div>
+            <div className="flex justify-between items-center">
+              <div>
+                <div className="font-medium text-gray-900">Admin</div>
+                <div className="text-gray-600">admin@mermed.com</div>
+              </div>
+              <code className="bg-gray-100 px-2 py-1 rounded text-gray-700">Admin@2026</code>
+            </div>
           </div>
         </div>
 
