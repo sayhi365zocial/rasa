@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
       include: { branch: true },
     })
 
-    if (!userRecord || !userRecord.branch) {
+    if (!userRecord) {
       return NextResponse.json(
-        { success: false, error: { code: 'NO_BRANCH', message: 'User has no branch assigned' } },
+        { success: false, error: { code: 'USER_NOT_FOUND', message: 'User not found' } },
         { status: 400 }
       )
     }
@@ -60,9 +60,15 @@ export async function POST(request: NextRequest) {
     // Generate key and upload
     const today = new Date().toISOString().split('T')[0]
     const extension = file.name.split('.').pop() || 'jpg'
+
+    // For users without branch (Auditor, Owner, Admin), use role as identifier
+    const identifier = userRecord.branch
+      ? userRecord.branch.branchCode
+      : userRecord.role.toLowerCase()
+
     const key = generateFileKey(
       type as any,
-      userRecord.branch.branchCode,
+      identifier,
       today,
       extension
     )

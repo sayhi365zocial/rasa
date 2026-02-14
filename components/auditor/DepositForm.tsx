@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatCurrency } from '@/lib/utils'
 
@@ -13,8 +13,17 @@ interface Branch {
 interface Closing {
   id: string
   closingDate: Date
-  handwrittenNetCash: any
+  handwrittenCashCount: number
   branch: Branch
+}
+
+interface BankAccount {
+  id: string
+  bankName: string
+  accountNumber: string
+  accountName: string
+  bankBranch: string | null
+  isDefault: boolean
 }
 
 interface DepositFormProps {
@@ -26,11 +35,11 @@ export function DepositForm({ closings, selectedClosingId }: DepositFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([])
 
   const [formData, setFormData] = useState({
     closingId: selectedClosingId || '',
-    bankName: '',
-    accountNumber: '',
+    bankAccountId: '',
     depositDate: new Date().toISOString().split('T')[0],
   })
 
@@ -38,6 +47,28 @@ export function DepositForm({ closings, selectedClosingId }: DepositFormProps) {
   const [uploadProgress, setUploadProgress] = useState(0)
 
   const selectedClosing = closings.find((c) => c.id === formData.closingId)
+  const selectedBankAccount = bankAccounts.find((b) => b.id === formData.bankAccountId)
+
+  // Fetch bank accounts on mount
+  useEffect(() => {
+    const fetchBankAccounts = async () => {
+      try {
+        const response = await fetch('/api/bank-accounts')
+        const data = await response.json()
+        setBankAccounts(data.accounts || [])
+
+        // Auto-select default account
+        const defaultAccount = data.accounts?.find((a: BankAccount) => a.isDefault)
+        if (defaultAccount) {
+          setFormData(prev => ({ ...prev, bankAccountId: defaultAccount.id }))
+        }
+      } catch (error) {
+        console.error('Failed to fetch bank accounts:', error)
+      }
+    }
+
+    fetchBankAccounts()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,14 +81,14 @@ export function DepositForm({ closings, selectedClosingId }: DepositFormProps) {
       if (!formData.closingId) {
         throw new Error('กรุณาเลือกรายการปิดยอด')
       }
-      if (!formData.bankName) {
-        throw new Error('กรุณากรอกชื่อธนาคาร')
-      }
-      if (!formData.accountNumber) {
-        throw new Error('กรุณากรอกเลขที่บัญชี')
+      if (!formData.bankAccountId) {
+        throw new Error('กรุณาเลือกบัญชีธนาคาร')
       }
       if (!depositSlipFile) {
         throw new Error('กรุณาอัพโหลดสลิปการนำฝาก')
+      }
+      if (!selectedBankAccount) {
+        throw new Error('ไม่พบข้อมูลบัญชีธนาคาร')
       }
 
       // Upload deposit slip to Cloudflare R2
@@ -78,6 +109,10 @@ export function DepositForm({ closings, selectedClosingId }: DepositFormProps) {
       const uploadData = await uploadResponse.json()
       setUploadProgress(50)
 
+      if (!uploadData.success || !uploadData.data?.url) {
+        throw new Error('ไม่สามารถอัพโหลดสลิปได้')
+      }
+
       // Create deposit record
       const depositResponse = await fetch('/api/deposits', {
         method: 'POST',
@@ -86,10 +121,11 @@ export function DepositForm({ closings, selectedClosingId }: DepositFormProps) {
         },
         body: JSON.stringify({
           closingId: formData.closingId,
-          bankName: formData.bankName,
-          accountNumber: formData.accountNumber,
+          bankName: selectedBankAccount.bankName,
+          accountNumber: selectedBankAccount.accountNumber,
+          bankBranch: selectedBankAccount.bankBranch,
           depositDate: formData.depositDate,
-          depositSlipUrl: uploadData.file.fileUrl,
+          depositSlipUrl: uploadData.data.url,
         }),
       })
 
@@ -140,7 +176,7 @@ export function DepositForm({ closings, selectedClosingId }: DepositFormProps) {
             <option key={closing.id} value={closing.id}>
               {closing.branch.branchName} -{' '}
               {new Date(closing.closingDate).toLocaleDateString('th-TH')} -{' '}
-              {formatCurrency(closing.handwrittenNetCash.toNumber())}
+              {formatCurrency(closing.handwrittenCashCount)}
             </option>
           ))}
         </select>
@@ -149,48 +185,67 @@ export function DepositForm({ closings, selectedClosingId }: DepositFormProps) {
       {/* Amount Display */}
       {selectedClosing && (
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <div className="text-sm text-purple-800 mb-1">จำนวนเงินที่ต้องนำฝาก</div>
+          <div className="text-sm text-purple-800 mb-1">เงินสดที่ต้องนำฝาก</div>
           <div className="text-3xl font-bold text-purple-900">
-            {formatCurrency(selectedClosing.handwrittenNetCash.toNumber())}
+            {formatCurrency(selectedClosing.handwrittenCashCount)}
+          </div>
+          <div className="text-xs text-purple-700 mt-1">
+            💰 เงินสดรอนำฝาก (เงินสด - ค่าใช้จ่าย)
           </div>
         </div>
       )}
 
-      {/* Bank Name */}
+      {/* Bank Account Selection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          ธนาคาร <span className="text-red-500">*</span>
+          บัญชีธนาคารบริษัท <span className="text-red-500">*</span>
         </label>
-        <input
-          type="text"
-          value={formData.bankName}
+        <select
+          value={formData.bankAccountId}
           onChange={(e) =>
-            setFormData({ ...formData, bankName: e.target.value })
+            setFormData({ ...formData, bankAccountId: e.target.value })
           }
           disabled={isLoading}
           required
-          placeholder="เช่น ธนาคารกสิกรไทย"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-        />
+        >
+          <option value="">เลือกบัญชีธนาคาร</option>
+          {bankAccounts.map((account) => (
+            <option key={account.id} value={account.id}>
+              {account.bankName} - {account.accountNumber}
+              {account.isDefault && ' (บัญชีหลัก)'}
+            </option>
+          ))}
+        </select>
+        {bankAccounts.length === 0 && (
+          <p className="text-sm text-red-600 mt-1">
+            ⚠️ ยังไม่มีบัญชีธนาคารในระบบ กรุณาติดต่อ Admin เพื่อเพิ่มบัญชี
+          </p>
+        )}
       </div>
 
-      {/* Account Number */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          เลขที่บัญชี <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.accountNumber}
-          onChange={(e) =>
-            setFormData({ ...formData, accountNumber: e.target.value })
-          }
-          disabled={isLoading}
-          required
-          placeholder="เช่น 123-4-56789-0"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-        />
-      </div>
+      {/* Selected Account Details */}
+      {selectedBankAccount && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="text-sm font-medium text-gray-700 mb-2">ข้อมูลบัญชี</div>
+          <div className="space-y-1 text-sm text-gray-600">
+            <p>
+              <span className="font-medium">ธนาคาร:</span> {selectedBankAccount.bankName}
+            </p>
+            <p>
+              <span className="font-medium">เลขที่บัญชี:</span> {selectedBankAccount.accountNumber}
+            </p>
+            <p>
+              <span className="font-medium">ชื่อบัญชี:</span> {selectedBankAccount.accountName}
+            </p>
+            {selectedBankAccount.bankBranch && (
+              <p>
+                <span className="font-medium">สาขา:</span> {selectedBankAccount.bankBranch}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Deposit Date */}
       <div>

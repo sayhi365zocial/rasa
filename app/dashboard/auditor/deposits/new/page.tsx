@@ -34,7 +34,7 @@ export default async function NewDepositPage({ searchParams }: PageProps) {
   }
 
   // Get all closings that are CASH_RECEIVED (ready for deposit)
-  const availableClosings = await db.dailyClosing.findMany({
+  const dbClosings = await db.dailyClosing.findMany({
     where: {
       status: 'CASH_RECEIVED',
     },
@@ -46,18 +46,42 @@ export default async function NewDepositPage({ searchParams }: PageProps) {
     },
   })
 
+  // Convert Decimal objects to plain numbers for client component
+  const availableClosings = dbClosings.map(closing => ({
+    id: closing.id,
+    closingDate: closing.closingDate,
+    handwrittenCashCount: closing.handwrittenCashCount.toNumber(),
+    branch: {
+      id: closing.branch.id,
+      branchName: closing.branch.branchName,
+      branchCode: closing.branch.branchCode,
+    },
+  }))
+
   // If closingId is provided, get that specific closing
   let selectedClosing = null
   if (searchParams.closingId) {
-    selectedClosing = await db.dailyClosing.findUnique({
+    const dbSelectedClosing = await db.dailyClosing.findUnique({
       where: { id: searchParams.closingId },
       include: {
         branch: true,
       },
     })
 
-    if (!selectedClosing || selectedClosing.status !== 'CASH_RECEIVED') {
+    if (!dbSelectedClosing || dbSelectedClosing.status !== 'CASH_RECEIVED') {
       redirect('/dashboard/auditor')
+    }
+
+    // Convert Decimal to number for client component
+    selectedClosing = {
+      id: dbSelectedClosing.id,
+      closingDate: dbSelectedClosing.closingDate,
+      handwrittenCashCount: dbSelectedClosing.handwrittenCashCount.toNumber(),
+      branch: {
+        id: dbSelectedClosing.branch.id,
+        branchName: dbSelectedClosing.branch.branchName,
+        branchCode: dbSelectedClosing.branch.branchCode,
+      },
     }
   }
 
@@ -126,12 +150,13 @@ export default async function NewDepositPage({ searchParams }: PageProps) {
                 </div>
                 <div className="border-t border-gray-200 pt-3">
                   <div className="text-xs text-gray-500 mb-1">
-                    จำนวนเงินที่ต้องนำฝาก
+                    เงินสดที่ต้องนำฝาก
                   </div>
                   <div className="text-2xl font-bold text-purple-600">
-                    {formatCurrency(
-                      selectedClosing.handwrittenNetCash.toNumber()
-                    )}
+                    {formatCurrency(selectedClosing.handwrittenCashCount)}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    (เงินสดรอนำฝาก)
                   </div>
                 </div>
               </div>
@@ -171,7 +196,7 @@ export default async function NewDepositPage({ searchParams }: PageProps) {
                     {formatDate(closing.closingDate)}
                   </div>
                   <div className="text-sm font-semibold text-purple-600 mt-1">
-                    {formatCurrency(closing.handwrittenNetCash.toNumber())}
+                    {formatCurrency(closing.handwrittenCashCount)}
                   </div>
                 </div>
               ))}

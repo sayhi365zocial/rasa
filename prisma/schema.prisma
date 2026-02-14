@@ -45,6 +45,7 @@ model User {
   dailyClosings DailyClosing[]
   cashReceived  DailyClosing[] @relation("CashReceiver")
   deposits      Deposit[]
+  depositApprovals Deposit[]   @relation("DepositApprover")
   auditLogs     AuditLog[]
 
   createdAt     DateTime    @default(now())
@@ -167,6 +168,13 @@ model DailyClosing {
 // BANK DEPOSIT
 // ========================================
 
+enum DepositApprovalStatus {
+  PENDING     // รอ Owner ตรวจสอบ
+  APPROVED    // Owner อนุมัติแล้ว
+  FLAGGED     // Owner ทำ flag ไว้ (มีข้อสงสัย)
+  REJECTED    // Owner ปฏิเสธ
+}
+
 model Deposit {
   id                String        @id @default(cuid())
 
@@ -189,11 +197,20 @@ model Deposit {
   depositor         User          @relation(fields: [depositedBy], references: [id])
   depositedAt       DateTime      @default(now())
 
+  // Owner Approval
+  approvalStatus    DepositApprovalStatus @default(PENDING)
+  approvedBy        String?
+  approver          User?         @relation("DepositApprover", fields: [approvedBy], references: [id])
+  approvedAt        DateTime?
+  approvalRemark    String?       @db.Text
+
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
   @@index([depositDate])
   @@index([depositedBy])
+  @@index([approvalStatus])
+  @@index([approvedBy])
 }
 
 // ========================================
@@ -231,6 +248,31 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([userId, createdAt])
   @@index([createdAt])
+}
+
+// ========================================
+// COMPANY BANK ACCOUNTS
+// ========================================
+
+enum BankAccountStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model CompanyBankAccount {
+  id            String            @id @default(cuid())
+  bankName      String            // ธนาคารกสิกรไทย, ธนาคารไทยพาณิชย์, etc.
+  accountNumber String
+  accountName   String            // ชื่อบัญชี
+  bankBranch    String?           // สาขาธนาคาร
+  isDefault     Boolean           @default(false)
+  status        BankAccountStatus @default(ACTIVE)
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([status])
+  @@index([isDefault])
 }
 
 // ========================================

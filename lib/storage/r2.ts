@@ -39,11 +39,14 @@ export async function getSignedDownloadUrl(key: string): Promise<string> {
 }
 
 export function generateFileKey(
-  type: 'pos' | 'handwritten' | 'edc' | 'deposit',
-  branchCode: string,
+  type: 'pos' | 'handwritten' | 'edc' | 'deposit-slip',
+  identifier: string, // branchCode or role (for auditor/owner/admin)
   date: string,
   extension: string = 'jpg'
 ): string {
   const timestamp = Date.now()
-  return `closings/${branchCode}/${date}/${type}_${timestamp}.${extension}`
+  if (type === 'deposit-slip') {
+    return `deposit-slip/${identifier}/${date}/${timestamp}.${extension}`
+  }
+  return `closings/${identifier}/${date}/${type}_${timestamp}.${extension}`
 }
