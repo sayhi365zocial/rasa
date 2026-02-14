@@ -32,10 +32,16 @@ export default async function StaffDashboardPage() {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
+  const endOfToday = new Date(today)
+  endOfToday.setHours(23, 59, 59, 999)
+
   const todayClosing = await db.dailyClosing.findFirst({
     where: {
       branchId: user.branchId!,
-      closingDate: today,
+      closingDate: {
+        gte: today,
+        lte: endOfToday,
+      },
     },
   })
 
