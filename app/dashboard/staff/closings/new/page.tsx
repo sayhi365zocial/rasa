@@ -819,9 +819,8 @@ export default function NewClosingPage() {
                   </label>
                   {(() => {
                     const cash = editedData.pos?.cash || 0
-                    const otherIncome = editedData.otherIncome || 0
                     const expenses = editedData.pos?.expenses || 0
-                    const cashToDeposit = cash + otherIncome - expenses
+                    const cashToDeposit = cash - expenses
 
                     return (
                       <>
@@ -830,7 +829,6 @@ export default function NewClosingPage() {
                         </div>
                         <div className="text-sm text-gray-600 space-y-1">
                           <p>= เงินสด {cash.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>
-                          {otherIncome > 0 && <p>+ รายรับอื่นๆ {otherIncome.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>}
                           <p>- ค่าใช้จ่าย {expenses.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>
                         </div>
                         <p className="text-xs text-orange-700 mt-2 font-medium">
@@ -855,7 +853,7 @@ export default function NewClosingPage() {
                     const otherIncome = editedData.otherIncome || 0
                     const expenses = editedData.pos?.expenses || 0
                     const netBalance = cash + transfer + netCredit + otherIncome - expenses
-                    const cashToDeposit = cash + otherIncome - expenses
+                    const cashToDeposit = cash - expenses
 
                     // Auto-update handwritten netCash (เงินสดที่จะนำส่ง)
                     if (editedData.handwritten) {
