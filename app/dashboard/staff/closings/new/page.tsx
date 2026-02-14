@@ -626,36 +626,54 @@ export default function NewClosingPage() {
             <div className="space-y-6">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  ตรวจสอบข้อมูลที่สกัดจากเอกสาร
+                  กรอกข้อมูลปิดยอดขาย
                 </h3>
                 <p className="text-sm text-gray-600">
-                  กรุณาตรวจสอบและแก้ไขข้อมูลที่ระบบสกัดจากรูปภาพให้ถูกต้อง
+                  กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน
                 </p>
               </div>
 
-              {/* POS Data */}
-              <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 mb-3">📊 ข้อมูล POS</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ยอดขายรวม
-                    </label>
+              {/* Simplified Input Form */}
+              <div className="space-y-4">
+                {/* 1. ยอดขายรวม */}
+                <div className="border border-gray-200 rounded-lg p-4 bg-blue-50">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    1. ยอดขายรวม
+                  </label>
+                  <div className="flex items-center space-x-3">
                     <input
                       type="number"
                       step="0.01"
                       value={editedData.pos?.totalSales || ''}
-                      onChange={(e) => setEditedData({
-                        ...editedData,
-                        pos: { ...editedData.pos, totalSales: parseFloat(e.target.value) || 0 }
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value) || 0
+                        setEditedData({
+                          ...editedData,
+                          pos: { ...editedData.pos, totalSales: value }
+                        })
+                      }}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-semibold"
+                      placeholder="0.00"
                     />
+                    <span className="text-gray-700 font-medium">บาท</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      เงินสด
-                    </label>
+                  {(() => {
+                    const creditFee = (editedData.pos?.credit || 0) * 0.03
+                    const totalAfterFee = (editedData.pos?.totalSales || 0) - creditFee
+                    return creditFee > 0 ? (
+                      <p className="text-sm text-gray-600 mt-2">
+                        ( {totalAfterFee.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท หลังหักค่าธรรมเนียม EDC {creditFee.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท )
+                      </p>
+                    ) : null
+                  })()}
+                </div>
+
+                {/* 2. เงินสด */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    2. เงินสด
+                  </label>
+                  <div className="flex items-center space-x-3">
                     <input
                       type="number"
                       step="0.01"
@@ -664,13 +682,19 @@ export default function NewClosingPage() {
                         ...editedData,
                         pos: { ...editedData.pos, cash: parseFloat(e.target.value) || 0 }
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                      placeholder="0.00"
                     />
+                    <span className="text-gray-700 font-medium">บาท</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      บัตรเครดิต
-                    </label>
+                </div>
+
+                {/* 3. เครดิต */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    3. บัตรเครดิต
+                  </label>
+                  <div className="flex items-center space-x-3">
                     <input
                       type="number"
                       step="0.01"
@@ -679,13 +703,29 @@ export default function NewClosingPage() {
                         ...editedData,
                         pos: { ...editedData.pos, credit: parseFloat(e.target.value) || 0 }
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                      placeholder="0.00"
                     />
+                    <span className="text-gray-700 font-medium">บาท</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      โอนเงิน
-                    </label>
+                  {(() => {
+                    const creditAmount = editedData.pos?.credit || 0
+                    const fee = creditAmount * 0.03
+                    const netCredit = creditAmount - fee
+                    return creditAmount > 0 ? (
+                      <p className="text-sm text-gray-600 mt-2">
+                        ( {netCredit.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท หลังหักค่าธรรมเนียม 3% = {fee.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท )
+                      </p>
+                    ) : null
+                  })()}
+                </div>
+
+                {/* 4. โอน */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    4. โอนเงิน
+                  </label>
+                  <div className="flex items-center space-x-3">
                     <input
                       type="number"
                       step="0.01"
@@ -694,13 +734,50 @@ export default function NewClosingPage() {
                         ...editedData,
                         pos: { ...editedData.pos, transfer: parseFloat(e.target.value) || 0 }
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                      placeholder="0.00"
                     />
+                    <span className="text-gray-700 font-medium">บาท</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ค่าใช้จ่าย
-                    </label>
+                </div>
+
+                {/* 5. รายรับอื่นๆ */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    5. รายรับอื่นๆ (ถ้ามี)
+                  </label>
+                  <div className="flex items-center space-x-3 mb-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editedData.otherIncome || ''}
+                      onChange={(e) => setEditedData({
+                        ...editedData,
+                        otherIncome: parseFloat(e.target.value) || 0
+                      })}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                      placeholder="0.00"
+                    />
+                    <span className="text-gray-700 font-medium">บาท</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={editedData.otherIncomeRemark || ''}
+                    onChange={(e) => setEditedData({
+                      ...editedData,
+                      otherIncomeRemark: e.target.value
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    placeholder="หมายเหตุ (เช่น เงินค่าบริการจัดส่ง, เงินคืนจากซัพพลายเออร์)"
+                  />
+                </div>
+
+                {/* 6. ค่าใช้จ่าย */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    6. ค่าใช้จ่าย
+                  </label>
+                  <div className="flex items-center space-x-3">
                     <input
                       type="number"
                       step="0.01"
@@ -709,113 +786,55 @@ export default function NewClosingPage() {
                         ...editedData,
                         pos: { ...editedData.pos, expenses: parseFloat(e.target.value) || 0 }
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                      placeholder="0.00"
                     />
+                    <span className="text-gray-700 font-medium">บาท</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      จำนวนบิล
-                    </label>
-                    <input
-                      type="number"
-                      value={editedData.pos?.billCount || ''}
-                      onChange={(e) => setEditedData({
-                        ...editedData,
-                        pos: { ...editedData.pos, billCount: parseInt(e.target.value) || 0 }
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+                </div>
+
+                {/* 7. ยอดคงเหลือสุทธิ (คำนวณอัตโนมัติ) */}
+                <div className="border-2 border-green-500 rounded-lg p-4 bg-green-50">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    7. ยอดคงเหลือสุทธิ (คำนวณอัตโนมัติ)
+                  </label>
+                  {(() => {
+                    const cash = editedData.pos?.cash || 0
+                    const transfer = editedData.pos?.transfer || 0
+                    const credit = editedData.pos?.credit || 0
+                    const creditFee = credit * 0.03
+                    const netCredit = credit - creditFee
+                    const otherIncome = editedData.otherIncome || 0
+                    const expenses = editedData.pos?.expenses || 0
+                    const netBalance = cash + transfer + netCredit + otherIncome - expenses
+
+                    // Auto-update handwritten netCash
+                    if (editedData.handwritten) {
+                      editedData.handwritten.netCash = netBalance
+                    } else {
+                      editedData.handwritten = { netCash: netBalance, cashCount: 0, expenses: 0 }
+                    }
+
+                    return (
+                      <>
+                        <div className="text-3xl font-bold text-green-700 mb-2">
+                          {netBalance.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>= เงินสด {cash.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>
+                          <p>+ โอน {transfer.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>
+                          <p>+ เครดิตสุทธิ {netCredit.toLocaleString('th-TH', {minimumFractionDigits: 2})} (หลังหักค่าธรรมเนียม {creditFee.toLocaleString('th-TH', {minimumFractionDigits: 2})})</p>
+                          {otherIncome > 0 && <p>+ รายรับอื่นๆ {otherIncome.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>}
+                          <p>- ค่าใช้จ่าย {expenses.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>
+                        </div>
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
 
-              {/* Handwritten Data */}
-              <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 mb-3">✍️ ใบสรุปลายมือ</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      นับเงินสด
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={editedData.handwritten?.cashCount || ''}
-                      onChange={(e) => setEditedData({
-                        ...editedData,
-                        handwritten: { ...editedData.handwritten, cashCount: parseFloat(e.target.value) || 0 }
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ค่าใช้จ่าย
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={editedData.handwritten?.expenses || ''}
-                      onChange={(e) => setEditedData({
-                        ...editedData,
-                        handwritten: { ...editedData.handwritten, expenses: parseFloat(e.target.value) || 0 }
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      เงินสดสุทธิ
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={editedData.handwritten?.netCash || ''}
-                      onChange={(e) => setEditedData({
-                        ...editedData,
-                        handwritten: { ...editedData.handwritten, netCash: parseFloat(e.target.value) || 0 }
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* EDC Data */}
-              <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 mb-3">💳 ข้อมูล EDC</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ยอดรวม EDC
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={editedData.edc?.totalAmount || ''}
-                      onChange={(e) => setEditedData({
-                        ...editedData,
-                        edc: { ...editedData.edc, totalAmount: parseFloat(e.target.value) || 0 }
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Batch Number
-                    </label>
-                    <input
-                      type="text"
-                      value={editedData.edc?.batchNumber || ''}
-                      onChange={(e) => setEditedData({
-                        ...editedData,
-                        edc: { ...editedData.edc, batchNumber: e.target.value }
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* Hidden EDC Data (auto-filled from credit card) */}
+              <input type="hidden" value={editedData.edc?.totalAmount || ''} />
 
               {/* Actions */}
               <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
