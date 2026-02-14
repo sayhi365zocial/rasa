@@ -115,6 +115,8 @@ model DailyClosing {
   posCredit         Decimal    @db.Decimal(10, 2)
   posTransfer       Decimal    @db.Decimal(10, 2)
   posExpenses       Decimal    @db.Decimal(10, 2)
+  otherIncome       Decimal?   @default(0) @db.Decimal(10, 2)
+  otherIncomeRemark String?    @db.Text
 
   posStartTime      String?
   posEndTime        String?

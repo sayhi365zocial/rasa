@@ -174,6 +174,21 @@ export default async function ClosingDetailPage({ params }: PageProps) {
                   {formatCurrency(closing.posTransfer.toNumber())}
                 </span>
               </div>
+              {closing.otherIncome && closing.otherIncome.toNumber() > 0 && (
+                <div className="py-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">รายรับอื่นๆ</span>
+                    <span className="text-base font-medium text-green-600">
+                      {formatCurrency(closing.otherIncome.toNumber())}
+                    </span>
+                  </div>
+                  {closing.otherIncomeRemark && (
+                    <div className="text-sm text-gray-500 mt-1 ml-4">
+                      {closing.otherIncomeRemark}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="flex justify-between items-center py-2">
                 <span className="text-gray-600">ค่าใช้จ่าย</span>
                 <span className="text-base font-medium text-red-600">
