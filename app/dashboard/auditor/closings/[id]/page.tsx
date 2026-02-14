@@ -152,11 +152,21 @@ export default async function ClosingDetailPage({ params }: PageProps) {
                   {formatCurrency(closing.posCash.toNumber())}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-gray-600">บัตรเครดิต</span>
-                <span className="text-base font-medium text-gray-900">
-                  {formatCurrency(closing.posCredit.toNumber())}
-                </span>
+              <div className="py-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">บัตรเครดิต</span>
+                  <span className="text-base font-medium text-gray-900">
+                    {formatCurrency(closing.posCredit.toNumber())}
+                  </span>
+                </div>
+                {closing.posCredit.toNumber() > 0 && (
+                  <div className="flex justify-between items-center mt-1 text-sm">
+                    <span className="text-gray-500 ml-4">หักค่าธรรมเนียม 3%</span>
+                    <span className="text-red-600">
+                      - {formatCurrency(closing.posCredit.toNumber() * 0.03)}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex justify-between items-center py-2">
                 <span className="text-gray-600">โอนเงิน</span>
