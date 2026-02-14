@@ -812,10 +812,39 @@ export default function NewClosingPage() {
                   </div>
                 </div>
 
-                {/* 7. ยอดคงเหลือสุทธิ (คำนวณอัตโนมัติ) */}
+                {/* 7. เงินสดคงเหลือนำส่ง (คำนวณอัตโนมัติ) */}
+                <div className="border-2 border-orange-500 rounded-lg p-4 bg-orange-50">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    7. เงินสดคงเหลือนำส่ง (คำนวณอัตโนมัติ)
+                  </label>
+                  {(() => {
+                    const cash = editedData.pos?.cash || 0
+                    const otherIncome = editedData.otherIncome || 0
+                    const expenses = editedData.pos?.expenses || 0
+                    const cashToDeposit = cash + otherIncome - expenses
+
+                    return (
+                      <>
+                        <div className="text-3xl font-bold text-orange-700 mb-2">
+                          {cashToDeposit.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>= เงินสด {cash.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>
+                          {otherIncome > 0 && <p>+ รายรับอื่นๆ {otherIncome.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>}
+                          <p>- ค่าใช้จ่าย {expenses.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>
+                        </div>
+                        <p className="text-xs text-orange-700 mt-2 font-medium">
+                          💰 Auditor จะมารับเงินสดจำนวนนี้
+                        </p>
+                      </>
+                    )
+                  })()}
+                </div>
+
+                {/* 8. ยอดคงเหลือสุทธิทั้งหมด (สรุป) */}
                 <div className="border-2 border-green-500 rounded-lg p-4 bg-green-50">
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    7. ยอดคงเหลือสุทธิ (คำนวณอัตโนมัติ)
+                    8. ยอดคงเหลือสุทธิทั้งหมด (คำนวณอัตโนมัติ)
                   </label>
                   {(() => {
                     const cash = editedData.pos?.cash || 0
@@ -826,12 +855,18 @@ export default function NewClosingPage() {
                     const otherIncome = editedData.otherIncome || 0
                     const expenses = editedData.pos?.expenses || 0
                     const netBalance = cash + transfer + netCredit + otherIncome - expenses
+                    const cashToDeposit = cash + otherIncome - expenses
 
-                    // Auto-update handwritten netCash
+                    // Auto-update handwritten netCash (เงินสดที่จะนำส่ง)
                     if (editedData.handwritten) {
                       editedData.handwritten.netCash = netBalance
+                      editedData.handwritten.cashCount = cashToDeposit
                     } else {
-                      editedData.handwritten = { netCash: netBalance, cashCount: 0, expenses: 0 }
+                      editedData.handwritten = {
+                        netCash: netBalance,
+                        cashCount: cashToDeposit,
+                        expenses: expenses
+                      }
                     }
 
                     return (
@@ -846,6 +881,9 @@ export default function NewClosingPage() {
                           {otherIncome > 0 && <p>+ รายรับอื่นๆ {otherIncome.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>}
                           <p>- ค่าใช้จ่าย {expenses.toLocaleString('th-TH', {minimumFractionDigits: 2})}</p>
                         </div>
+                        <p className="text-xs text-gray-600 mt-2">
+                          (รวมเงินสด + โอน + เครดิต)
+                        </p>
                       </>
                     )
                   })()}
