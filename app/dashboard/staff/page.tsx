@@ -256,7 +256,7 @@ export default async function StaffDashboardPage() {
                     ยอดขาย
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    เงินสดสุทธิ
+                    เงินสดนำส่ง
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     การกระทำ
@@ -276,7 +276,7 @@ export default async function StaffDashboardPage() {
                       {formatCurrency(closing.posTotalSales.toNumber())}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {formatCurrency(closing.handwrittenNetCash.toNumber())}
+                      {formatCurrency(closing.handwrittenCashCount.toNumber())}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <a
