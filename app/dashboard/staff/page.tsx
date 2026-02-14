@@ -70,7 +70,9 @@ export default async function StaffDashboardPage() {
       closingDate: {
         gte: startOfMonth,
       },
-      status: 'COMPLETED',
+      status: {
+        in: ['SUBMITTED', 'CASH_RECEIVED', 'DEPOSITED', 'COMPLETED'],
+      },
     },
   })
 
