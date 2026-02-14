@@ -177,7 +177,7 @@ export default async function AuditorDashboardPage() {
                     วันที่
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    เงินสดสุทธิ
+                    เงินสดรอนำฝาก
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     ส่งโดย
@@ -206,7 +206,7 @@ export default async function AuditorDashboardPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="text-lg font-semibold text-gray-900">
-                        {formatCurrency(closing.handwrittenNetCash.toNumber())}
+                        {formatCurrency(closing.handwrittenCashCount.toNumber())}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -265,7 +265,7 @@ export default async function AuditorDashboardPage() {
                     วันที่
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    เงินสดสุทธิ
+                    เงินสดรอนำฝาก
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                     การกระทำ
@@ -288,7 +288,7 @@ export default async function AuditorDashboardPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="text-lg font-semibold text-gray-900">
-                        {formatCurrency(closing.handwrittenNetCash.toNumber())}
+                        {formatCurrency(closing.handwrittenCashCount.toNumber())}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
