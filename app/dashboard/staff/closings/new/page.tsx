@@ -93,6 +93,16 @@ export default function NewClosingPage() {
 
   const canProceed = uploads.pos && uploads.handwritten && uploads.edc
 
+  const handleSkipUpload = () => {
+    // Skip OCR and go directly to manual input
+    setEditedData({
+      pos: { totalSales: 0, cash: 0, credit: 0, transfer: 0, expenses: 0 },
+      handwritten: { cashCount: 0, expenses: 0, netCash: 0 },
+      edc: { totalAmount: 0 },
+    })
+    setStep(2)
+  }
+
   const handleNext = async () => {
     if (step === 1) {
       if (!canProceed) {
@@ -610,13 +620,22 @@ export default function NewClosingPage() {
               >
                 ยกเลิก
               </button>
-              <button
-                onClick={handleNext}
-                disabled={!canProceed || loading}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md font-medium"
-              >
-                {loading ? 'กำลังประมวลผล...' : 'ถัดไป →'}
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleSkipUpload}
+                  disabled={loading}
+                  className="px-6 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  ข้ามขั้นตอนนี้ (กรอกเอง)
+                </button>
+                <button
+                  onClick={handleNext}
+                  disabled={!canProceed || loading}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md font-medium"
+                >
+                  {loading ? 'กำลังประมวลผล...' : 'ถัดไป →'}
+                </button>
+              </div>
             </div>
           </div>
           )}
