@@ -134,31 +134,73 @@ export default async function ClosingDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Cash Details */}
+          {/* Sales Details from Branch */}
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              รายละเอียดเงินสด
+              รายละเอียดยอดขายที่สาขาส่งมา
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="text-gray-600">ยอดขายรวม</span>
+                <span className="text-lg font-semibold text-gray-900">
+                  {formatCurrency(closing.posTotalSales.toNumber())}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600">เงินสด</span>
+                <span className="text-base font-medium text-gray-900">
+                  {formatCurrency(closing.posCash.toNumber())}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600">บัตรเครดิต</span>
+                <span className="text-base font-medium text-gray-900">
+                  {formatCurrency(closing.posCredit.toNumber())}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600">โอนเงิน</span>
+                <span className="text-base font-medium text-gray-900">
+                  {formatCurrency(closing.posTransfer.toNumber())}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600">ค่าใช้จ่าย</span>
+                <span className="text-base font-medium text-red-600">
+                  {formatCurrency(closing.posExpenses.toNumber())}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Cash to Collect */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              เงินสดที่ต้องรับจากสาขา
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">เงินสดนับจริง</span>
+                <span className="text-gray-600">เงินสด</span>
                 <span className="text-lg font-semibold text-gray-900">
-                  {formatCurrency(closing.handwrittenCashCount.toNumber())}
+                  {formatCurrency(closing.posCash.toNumber())}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">- ค่าใช้จ่าย</span>
                 <span className="text-lg font-semibold text-red-600">
-                  {formatCurrency(closing.handwrittenExpenses.toNumber())}
+                  {formatCurrency(closing.posExpenses.toNumber())}
                 </span>
               </div>
-              <div className="border-t border-gray-200 pt-3">
+              <div className="border-t-2 border-orange-500 pt-3 mt-3 bg-orange-50 -mx-6 px-6 py-3">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-900">เงินสดสุทธิที่ต้องรับ</span>
-                  <span className="text-2xl font-bold text-blue-600">
-                    {formatCurrency(closing.handwrittenNetCash.toNumber())}
+                  <span className="font-semibold text-gray-900">เงินสดรอนำฝาก</span>
+                  <span className="text-2xl font-bold text-orange-600">
+                    {formatCurrency(closing.handwrittenCashCount.toNumber())}
                   </span>
                 </div>
+                <p className="text-xs text-orange-700 mt-2">
+                  💰 จำนวนเงินสดที่ Auditor ต้องรับจากสาขา
+                </p>
               </div>
             </div>
           </div>
