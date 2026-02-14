@@ -250,8 +250,9 @@ export default function NewClosingPage() {
 
       const result = await res.json()
 
-      // Redirect to detail page
-      router.push(`/dashboard/staff/closings/${result.data.id}`)
+      // Show success popup and redirect
+      alert('✅ ส่งยอดขายสำเร็จ!\n\nข้อมูลถูกบันทึกเรียบร้อยแล้ว')
+      router.push('/dashboard/staff')
     } catch (err) {
       console.error('Submit error:', err)
       setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการบันทึก')
