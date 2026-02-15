@@ -320,7 +320,7 @@ export default async function ClosingDetailPage({ params }: PageProps) {
             ประวัติการดำเนินการ
           </h3>
           <div className="space-y-3">
-            {auditLogs.map((log) => (
+            {auditLogs.map((log: typeof auditLogs[0]) => (
               <div
                 key={log.id}
                 className="flex items-start space-x-3 text-sm border-l-2 border-gray-300 pl-4"
