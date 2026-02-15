@@ -136,7 +136,7 @@ export default async function DepositDetailPage({ params }: PageProps) {
 
             <div>
               <div className="text-sm text-gray-500">จำนวนเงินฝาก</div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-lg font-semibold text-gray-900">
                 {formatCurrency(deposit.depositAmount.toNumber())}
               </div>
             </div>
@@ -284,8 +284,8 @@ export default async function DepositDetailPage({ params }: PageProps) {
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-gray-200 pt-2">
-                  <span className="text-sm font-medium text-gray-700">เงินสดรอนำฝาก</span>
-                  <span className="text-lg font-bold text-green-600">
+                  <span className="text-base font-semibold text-gray-900">เงินสดรอนำฝาก</span>
+                  <span className="text-2xl font-bold text-green-600">
                     {formatCurrency(closing.handwrittenCashCount.toNumber())}
                   </span>
                 </div>
