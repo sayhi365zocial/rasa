@@ -47,7 +47,7 @@ export default async function NewDepositPage({ searchParams }: PageProps) {
   })
 
   // Convert Decimal objects to plain numbers for client component
-  const availableClosings = dbClosings.map(closing => ({
+  const availableClosings = dbClosings.map((closing: typeof dbClosings[0]) => ({
     id: closing.id,
     closingDate: closing.closingDate,
     handwrittenCashCount: closing.handwrittenCashCount.toNumber(),
