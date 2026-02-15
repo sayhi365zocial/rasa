@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth/session'
 import { db } from '@/lib/db'
 import { STATUS_LABELS, STATUS_COLORS } from '@/lib/types'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
+import { SubmitButton } from './submit-button'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -87,14 +88,7 @@ export default async function ClosingDetailPage({
         {/* Actions */}
         {canSubmit && (
           <div className="mb-6 flex gap-3">
-            <form action={`/api/closings/${closing.id}/submit`} method="POST">
-              <button
-                type="submit"
-                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium"
-              >
-                ส่งยอด
-              </button>
-            </form>
+            <SubmitButton closingId={closing.id} />
             {canEdit && (
               <a
                 href={`/dashboard/staff/closings/${closing.id}/edit`}
