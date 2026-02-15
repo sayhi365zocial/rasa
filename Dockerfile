@@ -1,8 +1,11 @@
-# Base image - Use Node 20 for AWS SDK compatibility
-FROM node:20-alpine AS base
+# Base image - Use Node 20 Debian-slim for better Prisma compatibility
+FROM node:20-slim AS base
 
-# Install OpenSSL 1.1 compatibility for Prisma
-RUN apk add --no-cache openssl1.1-compat
+# Install OpenSSL and other dependencies for Prisma
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -43,11 +46,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install OpenSSL 1.1 compatibility for Prisma in production
-RUN apk add --no-cache openssl1.1-compat libc6-compat
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 nextjs
 
 # Copy necessary files (use --chown to set permissions)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
