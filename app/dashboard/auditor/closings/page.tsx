@@ -195,7 +195,7 @@ export default async function ClosingsListPage({ searchParams }: PageProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {closings.map((closing) => (
+                {closings.map((closing: typeof closings[0]) => (
                   <tr key={closing.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatDate(closing.closingDate)}
