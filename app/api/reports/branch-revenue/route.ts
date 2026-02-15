@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     // Get revenue summary for each branch
     const branchRevenues = await Promise.all(
-      branches.map(async (branch) => {
+      branches.map(async (branch: typeof branches[0]) => {
         const summary = await db.dailyClosing.aggregate({
           where: {
             branchId: branch.id,
