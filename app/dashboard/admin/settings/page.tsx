@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth/session'
 import { db } from '@/lib/db'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { BankAccountList } from '@/components/admin/BankAccountList'
+import { CreditCardFeeConfig } from '@/components/admin/CreditCardFeeConfig'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -34,6 +35,12 @@ export default async function AdminSettingsPage() {
     ],
   })
 
+  // Get credit card fee rate
+  const feeConfig = await db.systemConfig.findUnique({
+    where: { key: 'credit_card_fee_rate' },
+  })
+  const creditCardFeeRate = feeConfig ? parseFloat(feeConfig.value) : 2.5
+
   return (
     <DashboardShell
       user={{
@@ -49,8 +56,22 @@ export default async function AdminSettingsPage() {
           ตั้งค่าระบบ
         </h2>
         <p className="text-gray-600 mt-1">
-          จัดการข้อมูลบัญชีธนาคารของบริษัท
+          จัดการข้อมูลบัญชีธนาคารและค่าธรรมเนียม
         </p>
+      </div>
+
+      {/* Credit Card Fee Configuration */}
+      <div className="bg-white border border-gray-200 rounded-lg mb-8">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">
+            ค่าธรรมเนียมบัตรเครดิต
+          </h3>
+          <p className="text-sm text-gray-500 mt-1">
+            กำหนดอัตราค่าธรรมเนียมที่ธนาคารหักจากยอดบัตรเครดิต
+          </p>
+        </div>
+
+        <CreditCardFeeConfig initialFeeRate={creditCardFeeRate} />
       </div>
 
       {/* Bank Accounts Section */}

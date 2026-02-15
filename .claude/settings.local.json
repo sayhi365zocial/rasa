@@ -8,7 +8,16 @@
       "Bash(git commit:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npx prisma db seed:*)",
+      "Bash(npm run dev:*)",
+      "Read(//var/folders/0d/nm6v75bj4jq61tjx96_8268c0000gn/T/TemporaryItems/NSIRD_screencaptureui_RwjirA/**)",
+      "Bash(npx prisma studio)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(pkill:*)",
+      "Bash(npm install:*)",
+      "Read(//var/folders/0d/nm6v75bj4jq61tjx96_8268c0000gn/T/TemporaryItems/NSIRD_screencaptureui_SeIdLO/**)",
+      "Read(//var/folders/0d/nm6v75bj4jq61tjx96_8268c0000gn/T/TemporaryItems/NSIRD_screencaptureui_5knSQl/**)"
     ],
     "deny": [],
     "ask": []
