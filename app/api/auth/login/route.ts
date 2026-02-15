@@ -115,12 +115,20 @@ export async function POST(request: NextRequest) {
     return response
   } catch (error) {
     console.error('Login error:', error)
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return NextResponse.json(
       {
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'เกิดข้อผิดพลาดในระบบ',
+          details: process.env.NODE_ENV === 'development'
+            ? (error instanceof Error ? error.message : String(error))
+            : undefined,
         },
       },
       { status: 500 }
