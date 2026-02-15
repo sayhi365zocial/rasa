@@ -50,21 +50,21 @@ export default async function DepositsListPage() {
   const stats = {
     totalDeposits: deposits.length,
     totalAmount: deposits.reduce(
-      (sum, d) => sum + d.depositAmount.toNumber(),
+      (sum: number, d: typeof deposits[0]) => sum + d.depositAmount.toNumber(),
       0
     ),
-    thisMonth: deposits.filter((d) => {
+    thisMonth: deposits.filter((d: typeof deposits[0]) => {
       const depositMonth = new Date(d.depositDate).getMonth()
       const currentMonth = new Date().getMonth()
       return depositMonth === currentMonth
     }).length,
     thisMonthAmount: deposits
-      .filter((d) => {
+      .filter((d: typeof deposits[0]) => {
         const depositMonth = new Date(d.depositDate).getMonth()
         const currentMonth = new Date().getMonth()
         return depositMonth === currentMonth
       })
-      .reduce((sum, d) => sum + d.depositAmount.toNumber(), 0),
+      .reduce((sum: number, d: typeof deposits[0]) => sum + d.depositAmount.toNumber(), 0),
   }
 
   return (
@@ -181,7 +181,7 @@ export default async function DepositsListPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {deposits.map((deposit) => (
+                {deposits.map((deposit: typeof deposits[0]) => (
                   <tr key={deposit.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatDate(deposit.depositDate)}

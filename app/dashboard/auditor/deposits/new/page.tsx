@@ -184,7 +184,7 @@ export default async function NewDepositPage({ searchParams }: PageProps) {
               รายการรอนำฝาก
             </h3>
             <div className="space-y-3">
-              {availableClosings.slice(0, 5).map((closing) => (
+              {availableClosings.slice(0, 5).map((closing: typeof availableClosings[0]) => (
                 <div
                   key={closing.id}
                   className="border-l-2 border-purple-400 pl-3"

@@ -112,7 +112,7 @@ export default async function OwnerDashboardPage() {
 
   // Get daily sales summary per branch (last 30 days)
   const branchDailySales = await Promise.all(
-    branches.map(async (branch) => {
+    branches.map(async (branch: typeof branches[0]) => {
       const salesSummary = await db.dailyClosing.aggregate({
         where: {
           branchId: branch.id,
@@ -256,7 +256,7 @@ export default async function OwnerDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {branchDailySales.map(({ branch, summary }) => (
+              {branchDailySales.map(({ branch, summary }: typeof branchDailySales[0]) => (
                 <tr key={branch.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="font-medium text-gray-900">
@@ -310,7 +310,7 @@ export default async function OwnerDashboardPage() {
         </div>
 
         <RecentDepositsTable
-          deposits={recentDeposits.map(deposit => ({
+          deposits={recentDeposits.map((deposit: typeof recentDeposits[0]) => ({
             id: deposit.id,
             depositDate: deposit.depositDate,
             depositAmount: deposit.depositAmount.toNumber(),

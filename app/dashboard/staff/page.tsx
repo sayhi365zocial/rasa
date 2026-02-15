@@ -213,7 +213,7 @@ export default async function StaffDashboardPage() {
           {todayClosing ? (
             <>
               <div className="text-lg text-gray-700">
-                {STATUS_LABELS[todayClosing.status]}
+                {STATUS_LABELS[todayClosing.status as keyof typeof STATUS_LABELS]}
               </div>
               <div className="text-sm text-gray-500 mt-1">
                 {todayClosing.submittedAt
@@ -272,7 +272,7 @@ export default async function StaffDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {recentClosings.map((closing) => (
+                {recentClosings.map((closing: typeof recentClosings[0]) => (
                   <tr key={closing.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatDate(closing.closingDate)}

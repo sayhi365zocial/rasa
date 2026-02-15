@@ -191,7 +191,7 @@ export default async function AuditorDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {pendingCollection.map((closing) => (
+                {pendingCollection.map((closing: typeof pendingCollection[0]) => (
                   <tr key={closing.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">
@@ -273,7 +273,7 @@ export default async function AuditorDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {pendingDeposit.map((closing) => (
+                {pendingDeposit.map((closing: typeof pendingDeposit[0]) => (
                   <tr key={closing.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">
