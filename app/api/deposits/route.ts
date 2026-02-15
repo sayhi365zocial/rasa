@@ -198,7 +198,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        deposits: deposits.map((deposit) => ({
+        deposits: deposits.map((deposit: typeof deposits[0]) => ({
           id: deposit.id,
           depositDate: deposit.depositDate,
           depositAmount: deposit.depositAmount.toNumber(),
