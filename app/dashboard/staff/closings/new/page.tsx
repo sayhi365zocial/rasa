@@ -1039,7 +1039,8 @@ export default function NewClosingPage() {
                         })}
                       </td>
                     </tr>
-                    <tr>
+                    {/* Comment: ยอด EDC - ไม่แสดงตอนนี้เพราะมีค่าบัตรเครดิตแยกแล้ว */}
+                    {/* <tr>
                       <td className="px-4 py-3 text-sm text-gray-900">
                         ยอด EDC
                       </td>
@@ -1048,7 +1049,7 @@ export default function NewClosingPage() {
                           minimumFractionDigits: 2,
                         })}
                       </td>
-                    </tr>
+                    </tr> */}
                     <tr>
                       <td className="px-4 py-3 text-sm text-gray-900">
                         นับเงินสด (ลายมือ)
