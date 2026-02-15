@@ -43,6 +43,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Install OpenSSL 1.1 compatibility for Prisma in production
+RUN apk add --no-cache openssl1.1-compat libc6-compat
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
