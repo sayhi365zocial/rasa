@@ -135,7 +135,7 @@ export default async function DepositDetailPage({ params }: PageProps) {
             </div>
 
             <div>
-              <div className="text-sm text-gray-500">จำนวนเงินฝาก</div>
+              <div className="text-sm text-gray-500">ยอดรายได้สุทธิ</div>
               <div className="text-lg font-semibold text-gray-900">
                 {formatCurrency(deposit.depositAmount.toNumber())}
               </div>
