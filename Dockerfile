@@ -1,6 +1,9 @@
 # Base image - Use Node 20 for AWS SDK compatibility
 FROM node:20-alpine AS base
 
+# Install OpenSSL 1.1 compatibility for Prisma
+RUN apk add --no-cache openssl1.1-compat
+
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
