@@ -30,14 +30,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 RUN npm run build
 
-# Run database migrations and seed (only during build)
-# Note: This requires DATABASE_URL to be set as build arg or available during build
-ARG DATABASE_URL
-ENV DATABASE_URL=$DATABASE_URL
-RUN if [ -n "$DATABASE_URL" ]; then \
-    npx prisma db push --accept-data-loss && \
-    npx prisma db seed || echo "Seed failed or already seeded"; \
-    fi
+# Note: Database migrations should be run manually or via Railway setup
+# DO NOT run db push or seed here as it will delete data on every build
 
 # Production image, copy all the files and run next
 FROM base AS runner
