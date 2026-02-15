@@ -85,11 +85,11 @@ export default async function ClosingsListPage({ searchParams }: PageProps) {
   // Get summary stats
   const stats = {
     total: closings.length,
-    submitted: closings.filter((c) => c.status === 'SUBMITTED').length,
-    cashReceived: closings.filter((c) => c.status === 'CASH_RECEIVED').length,
-    deposited: closings.filter((c) => c.status === 'DEPOSITED').length,
+    submitted: closings.filter((c: typeof closings[0]) => c.status === 'SUBMITTED').length,
+    cashReceived: closings.filter((c: typeof closings[0]) => c.status === 'CASH_RECEIVED').length,
+    deposited: closings.filter((c: typeof closings[0]) => c.status === 'DEPOSITED').length,
     totalAmount: closings.reduce(
-      (sum, c) => sum + c.handwrittenNetCash.toNumber(),
+      (sum: number, c: typeof closings[0]) => sum + c.handwrittenNetCash.toNumber(),
       0
     ),
   }
