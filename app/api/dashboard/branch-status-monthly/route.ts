@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
 
         // Find closing for this branch on this day
         const closing = closings.find(
-          (c) =>
+          (c: typeof closings[0]) =>
             c.branchId === branch.id &&
             c.closingDate.toISOString().split('T')[0] === dateStr
         )
