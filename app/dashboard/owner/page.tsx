@@ -182,7 +182,7 @@ export default async function OwnerDashboardPage() {
       const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 
       const closing = monthClosings.find(
-        (c) =>
+        (c: typeof monthClosings[0]) =>
           c.branchId === branch.id &&
           c.closingDate.toISOString().split('T')[0] === dateStr
       )
