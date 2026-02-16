@@ -1,4 +1,8 @@
+'use client'
+
 import { formatDate } from '@/lib/utils'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface BranchStatus {
   branchId: string
@@ -10,8 +14,8 @@ interface BranchStatus {
 }
 
 interface BranchDailyStatusTableProps {
-  date: Date
-  branchStatuses: BranchStatus[]
+  initialDate: Date
+  initialBranchStatuses: BranchStatus[]
 }
 
 const STATUS_CONFIG = {
@@ -48,21 +52,68 @@ const STATUS_CONFIG = {
 }
 
 export function BranchDailyStatusTable({
-  date,
-  branchStatuses,
+  initialDate,
+  initialBranchStatuses,
 }: BranchDailyStatusTableProps) {
+  const router = useRouter()
+  const [selectedDate, setSelectedDate] = useState(
+    initialDate.toISOString().split('T')[0]
+  )
+  const [branchStatuses, setBranchStatuses] = useState(initialBranchStatuses)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleDateChange = async (newDate: string) => {
+    setSelectedDate(newDate)
+    setIsLoading(true)
+
+    try {
+      const response = await fetch(
+        `/api/dashboard/branch-status?date=${newDate}`
+      )
+      const data = await response.json()
+
+      if (data.success) {
+        setBranchStatuses(data.data.branchStatuses)
+      }
+    } catch (error) {
+      console.error('Error fetching branch status:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-        <h3 className="text-lg font-semibold text-gray-900">
-          สถานะการส่งยอดประจำวัน
-        </h3>
-        <p className="text-sm text-gray-500 mt-1">
-          {formatDate(date)} - ติดตามสถานะการส่งยอดของแต่ละสาขา
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              สถานะการส่งยอดประจำวัน
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              ติดตามสถานะการส่งยอดของแต่ละสาขา
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <label className="text-sm font-medium text-gray-700">
+              เลือกวันที่:
+            </label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => handleDateChange(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+            <div className="text-gray-600">กำลังโหลด...</div>
+          </div>
+        )}
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>

@@ -187,7 +187,7 @@ export default async function AuditorDashboardPage() {
 
       {/* Branch Daily Status - Today */}
       <div className="mb-8">
-        <BranchDailyStatusTable date={todayDate} branchStatuses={branchStatuses} />
+        <BranchDailyStatusTable initialDate={todayDate} initialBranchStatuses={branchStatuses} />
       </div>
 
       {/* Pending Cash Collection */}

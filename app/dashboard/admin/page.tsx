@@ -241,7 +241,7 @@ export default async function AdminDashboardPage() {
 
       {/* Branch Daily Status - Today */}
       <div className="mb-8">
-        <BranchDailyStatusTable date={todayDate} branchStatuses={branchStatuses} />
+        <BranchDailyStatusTable initialDate={todayDate} initialBranchStatuses={branchStatuses} />
       </div>
 
       {/* Branch Revenue Report */}
