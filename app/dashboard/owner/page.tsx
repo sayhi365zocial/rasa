@@ -5,7 +5,7 @@ import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { RecentDepositsTable } from '@/components/owner/RecentDepositsTable'
 import { BranchRevenueReport } from '@/components/owner/BranchRevenueReport'
-import { BranchDailyStatusTable } from '@/components/dashboard/BranchDailyStatusTable'
+import { BranchMonthlyStatusGrid } from '@/components/dashboard/BranchMonthlyStatusGrid'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -145,34 +145,62 @@ export default async function OwnerDashboardPage() {
     })
   )
 
-  // Get today's closing status for each branch
-  const todayDate = new Date()
-  todayDate.setHours(0, 0, 0, 0)
+  // Get current month for status grid
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
 
-  const branchStatuses = await Promise.all(
-    branches.map(async (branch: typeof branches[0]) => {
-      const closing = await db.dailyClosing.findFirst({
-        where: {
-          branchId: branch.id,
-          closingDate: todayDate,
-        },
-        select: {
-          id: true,
-          status: true,
-          submittedAt: true,
-        },
-      })
+  // Get start and end date of current month
+  const monthStartDate = new Date(currentYear, currentMonth - 1, 1)
+  monthStartDate.setHours(0, 0, 0, 0)
+
+  const monthEndDate = new Date(currentYear, currentMonth, 0)
+  monthEndDate.setHours(23, 59, 59, 999)
+
+  const daysInMonth = monthEndDate.getDate()
+
+  // Get all closings for the current month
+  const monthClosings = await db.dailyClosing.findMany({
+    where: {
+      closingDate: {
+        gte: monthStartDate,
+        lte: monthEndDate,
+      },
+    },
+    select: {
+      branchId: true,
+      closingDate: true,
+      status: true,
+      id: true,
+    },
+  })
+
+  // Build monthly status grid
+  const branchMonthlyStatuses = branches.map((branch: typeof branches[0]) => {
+    const dailyStatuses = Array.from({ length: daysInMonth }, (_, i) => {
+      const day = i + 1
+      const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+
+      const closing = monthClosings.find(
+        (c) =>
+          c.branchId === branch.id &&
+          c.closingDate.toISOString().split('T')[0] === dateStr
+      )
 
       return {
-        branchId: branch.id,
-        branchCode: branch.branchCode,
-        branchName: branch.branchName,
+        date: dateStr,
         status: closing?.status || null,
         closingId: closing?.id || null,
-        submittedAt: closing?.submittedAt || null,
       }
     })
-  )
+
+    return {
+      branchId: branch.id,
+      branchCode: branch.branchCode,
+      branchName: branch.branchName,
+      dailyStatuses,
+    }
+  })
 
   return (
     <DashboardShell
@@ -239,9 +267,13 @@ export default async function OwnerDashboardPage() {
         </div>
       </div>
 
-      {/* Branch Daily Status - Today */}
+      {/* Branch Monthly Status Grid */}
       <div className="mb-8">
-        <BranchDailyStatusTable initialDate={todayDate} initialBranchStatuses={branchStatuses} />
+        <BranchMonthlyStatusGrid
+          initialYear={currentYear}
+          initialMonth={currentMonth}
+          initialBranchStatuses={branchMonthlyStatuses}
+        />
       </div>
 
       {/* Branch Revenue Report */}
