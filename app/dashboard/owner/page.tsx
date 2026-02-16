@@ -5,6 +5,7 @@ import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { RecentDepositsTable } from '@/components/owner/RecentDepositsTable'
 import { BranchRevenueReport } from '@/components/owner/BranchRevenueReport'
+import { BranchDailyStatusTable } from '@/components/dashboard/BranchDailyStatusTable'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -144,6 +145,35 @@ export default async function OwnerDashboardPage() {
     })
   )
 
+  // Get today's closing status for each branch
+  const todayDate = new Date()
+  todayDate.setHours(0, 0, 0, 0)
+
+  const branchStatuses = await Promise.all(
+    branches.map(async (branch: typeof branches[0]) => {
+      const closing = await db.dailyClosing.findFirst({
+        where: {
+          branchId: branch.id,
+          closingDate: todayDate,
+        },
+        select: {
+          id: true,
+          status: true,
+          submittedAt: true,
+        },
+      })
+
+      return {
+        branchId: branch.id,
+        branchCode: branch.branchCode,
+        branchName: branch.branchName,
+        status: closing?.status || null,
+        closingId: closing?.id || null,
+        submittedAt: closing?.submittedAt || null,
+      }
+    })
+  )
+
   return (
     <DashboardShell
       user={{
@@ -207,6 +237,11 @@ export default async function OwnerDashboardPage() {
           </div>
           <div className="text-xs text-gray-500">ยอดฝาก 30 วันล่าสุด</div>
         </div>
+      </div>
+
+      {/* Branch Daily Status - Today */}
+      <div className="mb-8">
+        <BranchDailyStatusTable date={todayDate} branchStatuses={branchStatuses} />
       </div>
 
       {/* Branch Revenue Report */}

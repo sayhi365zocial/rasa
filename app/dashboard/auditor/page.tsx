@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { STATUS_LABELS, STATUS_COLORS } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { BranchDailyStatusTable } from '@/components/dashboard/BranchDailyStatusTable'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -89,6 +90,41 @@ export default async function AuditorDashboardPage() {
     }),
   }
 
+  // Get all branches for status table
+  const branches = await db.branch.findMany({
+    where: { status: 'ACTIVE' },
+    orderBy: { branchName: 'asc' },
+  })
+
+  // Get today's closing status for each branch
+  const todayDate = new Date()
+  todayDate.setHours(0, 0, 0, 0)
+
+  const branchStatuses = await Promise.all(
+    branches.map(async (branch: typeof branches[0]) => {
+      const closing = await db.dailyClosing.findFirst({
+        where: {
+          branchId: branch.id,
+          closingDate: todayDate,
+        },
+        select: {
+          id: true,
+          status: true,
+          submittedAt: true,
+        },
+      })
+
+      return {
+        branchId: branch.id,
+        branchCode: branch.branchCode,
+        branchName: branch.branchName,
+        status: closing?.status || null,
+        closingId: closing?.id || null,
+        submittedAt: closing?.submittedAt || null,
+      }
+    })
+  )
+
   return (
     <DashboardShell
       user={{
@@ -147,6 +183,11 @@ export default async function AuditorDashboardPage() {
           </div>
           <div className="text-sm text-gray-500 mt-1">รายการ</div>
         </div>
+      </div>
+
+      {/* Branch Daily Status - Today */}
+      <div className="mb-8">
+        <BranchDailyStatusTable date={todayDate} branchStatuses={branchStatuses} />
       </div>
 
       {/* Pending Cash Collection */}
