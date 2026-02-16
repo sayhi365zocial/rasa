@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     // Get closing status for each branch on the selected date
     const branchStatuses = await Promise.all(
-      branches.map(async (branch) => {
+      branches.map(async (branch: typeof branches[0]) => {
         const closing = await db.dailyClosing.findFirst({
           where: {
             branchId: branch.id,
