@@ -25,9 +25,14 @@ export default function NewClosingPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const [closingDate, setClosingDate] = useState(
-    new Date().toISOString().split('T')[0]
-  )
+  const [closingDate, setClosingDate] = useState(() => {
+    // Check if manager selected a date
+    if (typeof window !== 'undefined') {
+      const managerDate = sessionStorage.getItem('manager_closing_date')
+      if (managerDate) return managerDate
+    }
+    return new Date().toISOString().split('T')[0]
+  })
 
   const [uploads, setUploads] = useState<{
     pos?: UploadedFile
@@ -204,9 +209,12 @@ export default function NewClosingPage() {
     setError('')
 
     try {
+      // Check if manager selected a branch
+      const managerBranchId = typeof window !== 'undefined' ? sessionStorage.getItem('manager_selected_branch') : null
+
       const payload = {
         closingDate,
-        branchId: '', // Will be set by API from user session
+        branchId: managerBranchId || '', // Will be set by API from user session or use manager's selection
 
         // POS data
         posImageUrl: uploads.pos?.url,
@@ -250,9 +258,24 @@ export default function NewClosingPage() {
 
       const result = await res.json()
 
+      // Check if manager was using this form
+      const isManagerFlow = typeof window !== 'undefined' && sessionStorage.getItem('manager_selected_branch')
+
+      // Clear sessionStorage
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('manager_selected_branch')
+        sessionStorage.removeItem('manager_closing_date')
+      }
+
       // Show success popup and redirect
       alert('✅ ส่งยอดขายสำเร็จ!\n\nข้อมูลถูกบันทึกเรียบร้อยแล้ว')
-      router.push('/dashboard/staff')
+
+      // Redirect based on who submitted
+      if (isManagerFlow) {
+        router.push('/dashboard/manager')
+      } else {
+        router.push('/dashboard/staff')
+      }
     } catch (err) {
       console.error('Submit error:', err)
       setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการบันทึก')
