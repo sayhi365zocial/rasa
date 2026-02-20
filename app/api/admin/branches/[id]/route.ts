@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth/session'
-import prisma from '@/lib/prisma'
-import { createAuditLog } from '@/lib/audit'
+import { db } from '@/lib/db'
 
 /**
  * PUT /api/admin/branches/[id] - Update branch
@@ -32,7 +31,7 @@ export async function PUT(
     } = body
 
     // Get existing branch
-    const existingBranch = await prisma.branch.findUnique({
+    const existingBranch = await db.branch.findUnique({
       where: { id: branchId },
     })
 
@@ -42,7 +41,7 @@ export async function PUT(
 
     // Check for duplicate branchCode (if changing)
     if (branchCode && branchCode !== existingBranch.branchCode) {
-      const duplicate = await prisma.branch.findUnique({
+      const duplicate = await db.branch.findUnique({
         where: { branchCode },
       })
       if (duplicate) {
@@ -63,19 +62,21 @@ export async function PUT(
     }
 
     // Update branch
-    const updatedBranch = await prisma.branch.update({
+    const updatedBranch = await db.branch.update({
       where: { id: branchId },
       data: updateData,
     })
 
     // Create audit log
     const changes = Object.keys(updateData).join(', ')
-    await createAuditLog({
-      userId: currentUser.userId,
-      action: 'UPDATE',
-      entityType: 'Branch',
-      entityId: branchId,
-      remark: `Updated branch ${updatedBranch.branchCode} - Changed: ${changes}`,
+    await db.auditLog.create({
+      data: {
+        userId: currentUser.userId,
+        action: 'UPDATE',
+        entityType: 'Branch',
+        entityId: branchId,
+        remark: `Updated branch ${updatedBranch.branchCode} - Changed: ${changes}`,
+      },
     })
 
     return NextResponse.json({
@@ -113,7 +114,7 @@ export async function DELETE(
     const branchId = params.id
 
     // Get branch before deletion
-    const branch = await prisma.branch.findUnique({
+    const branch = await db.branch.findUnique({
       where: { id: branchId },
       include: {
         _count: {
@@ -145,17 +146,19 @@ export async function DELETE(
     }
 
     // Delete branch
-    await prisma.branch.delete({
+    await db.branch.delete({
       where: { id: branchId },
     })
 
     // Create audit log
-    await createAuditLog({
-      userId: currentUser.userId,
-      action: 'DELETE',
-      entityType: 'Branch',
-      entityId: branchId,
-      remark: `Deleted branch ${branch.branchCode} - ${branch.branchName}`,
+    await db.auditLog.create({
+      data: {
+        userId: currentUser.userId,
+        action: 'DELETE',
+        entityType: 'Branch',
+        entityId: branchId,
+        remark: `Deleted branch ${branch.branchCode} - ${branch.branchName}`,
+      },
     })
 
     return NextResponse.json({

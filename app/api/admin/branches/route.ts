@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth/session'
-import prisma from '@/lib/prisma'
-import { createAuditLog } from '@/lib/audit'
+import { db } from '@/lib/db'
 
 /**
  * GET /api/admin/branches - List all branches
@@ -18,7 +17,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const branches = await prisma.branch.findMany({
+    const branches = await db.branch.findMany({
       include: {
         _count: {
           select: {
@@ -89,7 +88,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check for duplicate branchCode
-    const existing = await prisma.branch.findUnique({
+    const existing = await db.branch.findUnique({
       where: { branchCode },
     })
     if (existing) {
@@ -100,7 +99,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create branch
-    const newBranch = await prisma.branch.create({
+    const newBranch = await db.branch.create({
       data: {
         branchCode,
         branchName,
@@ -111,12 +110,14 @@ export async function POST(req: NextRequest) {
     })
 
     // Create audit log
-    await createAuditLog({
-      userId: currentUser.userId,
-      action: 'CREATE',
-      entityType: 'Branch',
-      entityId: newBranch.id,
-      remark: `Created branch ${newBranch.branchCode} - ${newBranch.branchName}`,
+    await db.auditLog.create({
+      data: {
+        userId: currentUser.userId,
+        action: 'CREATE',
+        entityType: 'Branch',
+        entityId: newBranch.id,
+        remark: `Created branch ${newBranch.branchCode} - ${newBranch.branchName}`,
+      },
     })
 
     return NextResponse.json({

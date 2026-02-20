@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth/session'
-import prisma from '@/lib/prisma'
+import { db } from '@/lib/db'
 import { generateDailySummaryEmail, generatePlainTextSummary } from '@/lib/email/templates'
 import { sendDailySummaryToOwner } from '@/lib/email/sender'
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     endDate.setHours(23, 59, 59, 999)
 
     // Get all owners
-    const owners = await prisma.user.findMany({
+    const owners = await db.user.findMany({
       where: {
         role: 'OWNER',
         status: 'ACTIVE',
@@ -60,13 +60,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Get all branches
-    const branches = await prisma.branch.findMany({
+    const branches = await db.branch.findMany({
       where: { status: 'ACTIVE' },
       orderBy: { branchName: 'asc' },
     })
 
     // Get daily closings for the date
-    const dailyClosings = await prisma.dailyClosing.findMany({
+    const dailyClosings = await db.dailyClosing.findMany({
       where: {
         closingDate: {
           gte: targetDate,
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Get deposits for the date
-    const deposits = await prisma.deposit.findMany({
+    const deposits = await db.deposit.findMany({
       where: {
         depositDate: {
           gte: targetDate,

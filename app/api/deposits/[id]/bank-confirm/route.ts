@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth/session'
-import prisma from '@/lib/prisma'
-import { createAuditLog } from '@/lib/audit'
+import { db } from '@/lib/db'
 import { Decimal } from '@prisma/client/runtime/library'
 
 /**
@@ -47,7 +46,7 @@ export async function POST(
     }
 
     // Fetch deposit
-    const deposit = await prisma.deposit.findUnique({
+    const deposit = await db.deposit.findUnique({
       where: { id: depositId },
       include: {
         dailyClosing: {
@@ -79,7 +78,7 @@ export async function POST(
     }
 
     // Update deposit with bank confirmation
-    const updatedDeposit = await prisma.deposit.update({
+    const updatedDeposit = await db.deposit.update({
       where: { id: depositId },
       data: {
         isBankConfirmed: true,
@@ -106,15 +105,17 @@ export async function POST(
       : ''
 
     // Create audit log
-    await createAuditLog({
-      userId: user.userId,
-      action: 'APPROVE',
-      entityType: 'Deposit',
-      entityId: depositId,
-      fieldName: 'isBankConfirmed',
-      oldValue: 'false',
-      newValue: 'true',
-      remark: `Owner confirmed bank receipt for ${updatedDeposit.dailyClosing.branch.branchName} - Amount: ${actualDepositAmount} THB${varianceMessage}${remark ? ` - ${remark}` : ''}`,
+    await db.auditLog.create({
+      data: {
+        userId: user.userId,
+        action: 'APPROVE',
+        entityType: 'Deposit',
+        entityId: depositId,
+        fieldName: 'isBankConfirmed',
+        oldValue: 'false',
+        newValue: 'true',
+        remark: `Owner confirmed bank receipt for ${updatedDeposit.dailyClosing.branch.branchName} - Amount: ${actualDepositAmount} THB${varianceMessage}${remark ? ` - ${remark}` : ''}`,
+      },
     })
 
     return NextResponse.json({

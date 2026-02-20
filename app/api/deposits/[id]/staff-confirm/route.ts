@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth/session'
-import prisma from '@/lib/prisma'
-import { createAuditLog } from '@/lib/audit'
+import { db } from '@/lib/db'
 
 /**
  * POST /api/deposits/[id]/staff-confirm
@@ -31,7 +30,7 @@ export async function POST(
     const { remark } = body
 
     // Fetch deposit with related daily closing
-    const deposit = await prisma.deposit.findUnique({
+    const deposit = await db.deposit.findUnique({
       where: { id: depositId },
       include: {
         dailyClosing: {
@@ -64,7 +63,7 @@ export async function POST(
     }
 
     // Update deposit with staff confirmation
-    const updatedDeposit = await prisma.deposit.update({
+    const updatedDeposit = await db.deposit.update({
       where: { id: depositId },
       data: {
         isStaffConfirmed: true,
@@ -83,15 +82,17 @@ export async function POST(
     })
 
     // Create audit log
-    await createAuditLog({
-      userId: user.userId,
-      action: 'APPROVE',
-      entityType: 'Deposit',
-      entityId: depositId,
-      fieldName: 'isStaffConfirmed',
-      oldValue: 'false',
-      newValue: 'true',
-      remark: `Staff confirmed deposit for ${updatedDeposit.dailyClosing.branch.branchName} (${updatedDeposit.depositAmount} THB)${remark ? ` - ${remark}` : ''}`,
+    await db.auditLog.create({
+      data: {
+        userId: user.userId,
+        action: 'APPROVE',
+        entityType: 'Deposit',
+        entityId: depositId,
+        fieldName: 'isStaffConfirmed',
+        oldValue: 'false',
+        newValue: 'true',
+        remark: `Staff confirmed deposit for ${updatedDeposit.dailyClosing.branch.branchName} (${updatedDeposit.depositAmount} THB)${remark ? ` - ${remark}` : ''}`,
+      },
     })
 
     return NextResponse.json({

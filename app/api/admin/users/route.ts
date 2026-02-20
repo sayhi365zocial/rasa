@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth/session'
-import prisma from '@/lib/prisma'
+import { db } from '@/lib/db'
 import bcrypt from 'bcrypt'
-import { createAuditLog } from '@/lib/audit'
 
 /**
  * GET /api/admin/users - List all users
@@ -19,7 +18,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const users = await prisma.user.findMany({
+    const users = await db.user.findMany({
       include: {
         branch: true,
       },
@@ -113,7 +112,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check for duplicate email
-    const existingEmail = await prisma.user.findUnique({
+    const existingEmail = await db.user.findUnique({
       where: { email },
     })
     if (existingEmail) {
@@ -124,7 +123,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check for duplicate username
-    const existingUsername = await prisma.user.findUnique({
+    const existingUsername = await db.user.findUnique({
       where: { username },
     })
     if (existingUsername) {
@@ -138,7 +137,7 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10)
 
     // Create user
-    const newUser = await prisma.user.create({
+    const newUser = await db.user.create({
       data: {
         email,
         username,
@@ -156,12 +155,14 @@ export async function POST(req: NextRequest) {
     })
 
     // Create audit log
-    await createAuditLog({
-      userId: currentUser.userId,
-      action: 'CREATE',
-      entityType: 'User',
-      entityId: newUser.id,
-      remark: `Created user ${newUser.email} with role ${newUser.role}`,
+    await db.auditLog.create({
+      data: {
+        userId: currentUser.userId,
+        action: 'CREATE',
+        entityType: 'User',
+        entityId: newUser.id,
+        remark: `Created user ${newUser.email} with role ${newUser.role}`,
+      },
     })
 
     return NextResponse.json({

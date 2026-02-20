@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth/session'
-import prisma from '@/lib/prisma'
+import { db } from '@/lib/db'
 import bcrypt from 'bcrypt'
-import { createAuditLog } from '@/lib/audit'
 
 /**
  * PUT /api/admin/users/[id] - Update user
@@ -37,7 +36,7 @@ export async function PUT(
     } = body
 
     // Get existing user
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await db.user.findUnique({
       where: { id: userId },
     })
 
@@ -66,7 +65,7 @@ export async function PUT(
 
     // Check for duplicate email (if changing)
     if (email && email !== existingUser.email) {
-      const duplicateEmail = await prisma.user.findUnique({
+      const duplicateEmail = await db.user.findUnique({
         where: { email },
       })
       if (duplicateEmail) {
@@ -79,7 +78,7 @@ export async function PUT(
 
     // Check for duplicate username (if changing)
     if (username && username !== existingUser.username) {
-      const duplicateUsername = await prisma.user.findUnique({
+      const duplicateUsername = await db.user.findUnique({
         where: { username },
       })
       if (duplicateUsername) {
@@ -116,7 +115,7 @@ export async function PUT(
     }
 
     // Update user
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: { id: userId },
       data: updateData,
       include: {
@@ -126,12 +125,14 @@ export async function PUT(
 
     // Create audit log
     const changes = Object.keys(updateData).filter(k => k !== 'passwordHash').join(', ')
-    await createAuditLog({
-      userId: currentUser.userId,
-      action: 'UPDATE',
-      entityType: 'User',
-      entityId: userId,
-      remark: `Updated user ${updatedUser.email} - Changed: ${changes}${password ? ', password' : ''}`,
+    await db.auditLog.create({
+      data: {
+        userId: currentUser.userId,
+        action: 'UPDATE',
+        entityType: 'User',
+        entityId: userId,
+        remark: `Updated user ${updatedUser.email} - Changed: ${changes}${password ? ', password' : ''}`,
+      },
     })
 
     return NextResponse.json({
@@ -187,7 +188,7 @@ export async function DELETE(
     }
 
     // Get user before deletion
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
     })
 
@@ -196,17 +197,19 @@ export async function DELETE(
     }
 
     // Delete user
-    await prisma.user.delete({
+    await db.user.delete({
       where: { id: userId },
     })
 
     // Create audit log
-    await createAuditLog({
-      userId: currentUser.userId,
-      action: 'DELETE',
-      entityType: 'User',
-      entityId: userId,
-      remark: `Deleted user ${user.email} (${user.role})`,
+    await db.auditLog.create({
+      data: {
+        userId: currentUser.userId,
+        action: 'DELETE',
+        entityType: 'User',
+        entityId: userId,
+        remark: `Deleted user ${user.email} (${user.role})`,
+      },
     })
 
     return NextResponse.json({
