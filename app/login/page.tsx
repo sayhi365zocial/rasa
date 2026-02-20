@@ -39,6 +39,8 @@ export default function LoginPage() {
         router.push('/dashboard/staff')
       } else if (role === 'AUDITOR') {
         router.push('/dashboard/auditor')
+      } else if (role === 'MANAGER') {
+        router.push('/dashboard/manager')
       } else if (role === 'OWNER') {
         router.push('/dashboard/owner')
       } else {
@@ -158,6 +160,13 @@ export default function LoginPage() {
                 <div className="text-gray-600">auditor@mermed.com</div>
               </div>
               <code className="bg-gray-100 px-2 py-1 rounded text-gray-700">Auditor@2026</code>
+            </div>
+            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+              <div>
+                <div className="font-medium text-gray-900">Manager</div>
+                <div className="text-gray-600">manager@mermed.com</div>
+              </div>
+              <code className="bg-gray-100 px-2 py-1 rounded text-gray-700">Manager@2026</code>
             </div>
             <div className="flex justify-between items-center border-b border-gray-100 pb-2">
               <div>
