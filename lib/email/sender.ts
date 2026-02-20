@@ -22,7 +22,7 @@ interface EmailOptions {
 }
 
 // Create transporter using Postmark SMTP
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.postmarkapp.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false, // Use TLS
