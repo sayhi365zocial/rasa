@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth/session'
 import { db } from '@/lib/db'
-import { Decimal } from '@prisma/client/runtime/library'
+import { Prisma } from '@prisma/client'
 
 /**
  * POST /api/deposits/[id]/bank-confirm
@@ -84,7 +84,7 @@ export async function POST(
         isBankConfirmed: true,
         bankConfirmedBy: user.userId,
         bankConfirmedAt: new Date(),
-        actualDepositAmount: new Decimal(actualDepositAmount),
+        actualDepositAmount: new Prisma.Decimal(actualDepositAmount),
         bankConfirmRemark: remark || null,
         approvalStatus: 'BANK_CONFIRMED', // Update status to BANK_CONFIRMED
       },
