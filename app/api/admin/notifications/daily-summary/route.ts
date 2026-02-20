@@ -97,20 +97,20 @@ export async function POST(req: NextRequest) {
 
     // Calculate summary
     const summary = {
-      totalSales: dailyClosings.reduce((sum, c) => sum + Number(c.posTotalSales), 0),
+      totalSales: dailyClosings.reduce((sum: number, c: typeof dailyClosings[0]) => sum + Number(c.posTotalSales), 0),
       totalCashCollected: dailyClosings
-        .filter(c => c.status !== 'DRAFT')
-        .reduce((sum, c) => sum + Number(c.handwrittenNetCash), 0),
+        .filter((c: typeof dailyClosings[0]) => c.status !== 'DRAFT')
+        .reduce((sum: number, c: typeof dailyClosings[0]) => sum + Number(c.handwrittenNetCash), 0),
       totalDeposited: deposits
-        .filter(d => d.approvalStatus === 'APPROVED' || d.approvalStatus === 'BANK_CONFIRMED')
-        .reduce((sum, d) => sum + Number(d.depositAmount), 0),
-      pendingCollection: dailyClosings.filter(c => c.status === 'SUBMITTED').length,
-      pendingDeposit: dailyClosings.filter(c => c.status === 'CASH_RECEIVED').length,
+        .filter((d: typeof deposits[0]) => d.approvalStatus === 'APPROVED' || d.approvalStatus === 'BANK_CONFIRMED')
+        .reduce((sum: number, d: typeof deposits[0]) => sum + Number(d.depositAmount), 0),
+      pendingCollection: dailyClosings.filter((c: typeof dailyClosings[0]) => c.status === 'SUBMITTED').length,
+      pendingDeposit: dailyClosings.filter((c: typeof dailyClosings[0]) => c.status === 'CASH_RECEIVED').length,
     }
 
     // Prepare branch data
-    const branchData = branches.map(branch => {
-      const closing = dailyClosings.find(c => c.branchId === branch.id)
+    const branchData = branches.map((branch: typeof branches[0]) => {
+      const closing = dailyClosings.find((c: typeof dailyClosings[0]) => c.branchId === branch.id)
 
       return {
         branchName: branch.branchName,
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Prepare deposit data
-    const depositData = deposits.map(d => ({
+    const depositData = deposits.map((d: typeof deposits[0]) => ({
       branchName: d.dailyClosing.branch.branchName,
       amount: Number(d.depositAmount),
       status: d.approvalStatus,
@@ -138,8 +138,8 @@ export async function POST(req: NextRequest) {
     const issues: Array<{ branchName: string; issue: string; severity: 'low' | 'medium' | 'high' }> = []
 
     // Check for branches with no submission
-    branches.forEach(branch => {
-      const hasClosing = dailyClosings.some(c => c.branchId === branch.id)
+    branches.forEach((branch: typeof branches[0]) => {
+      const hasClosing = dailyClosings.some((c: typeof dailyClosings[0]) => c.branchId === branch.id)
       if (!hasClosing) {
         issues.push({
           branchName: branch.branchName,
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Check for discrepancies
-    dailyClosings.forEach(closing => {
+    dailyClosings.forEach((closing: typeof dailyClosings[0]) => {
       if (closing.hasDiscrepancy) {
         issues.push({
           branchName: closing.branch.branchName,
@@ -174,7 +174,7 @@ export async function POST(req: NextRequest) {
 
     // Send email to all owners
     const results = await Promise.all(
-      owners.map(async (owner) => {
+      owners.map(async (owner: typeof owners[0]) => {
         const sent = await sendDailySummaryToOwner(
           owner.email,
           htmlContent,
@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
       })
     )
 
-    const successCount = results.filter(r => r.sent).length
+    const successCount = results.filter((r: typeof results[0]) => r.sent).length
 
     return NextResponse.json({
       success: true,
