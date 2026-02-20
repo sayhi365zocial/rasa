@@ -78,6 +78,31 @@ export default async function StaffDashboardPage() {
 
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
 
+  // Get deposits pending staff confirmation
+  const pendingStaffConfirmation = await db.deposit.findMany({
+    where: {
+      dailyClosing: {
+        branchId: user.branchId!,
+      },
+      isStaffConfirmed: false,
+      approvalStatus: {
+        in: ['APPROVED', 'BANK_CONFIRMED'],
+      },
+    },
+    include: {
+      dailyClosing: {
+        include: {
+          branch: true,
+        },
+      },
+      depositor: true,
+    },
+    orderBy: {
+      depositedAt: 'desc',
+    },
+    take: 5,
+  })
+
   return (
     <DashboardShell
       user={{
@@ -241,6 +266,91 @@ export default async function StaffDashboardPage() {
           <div className="text-sm text-gray-500 mt-1">ส่งยอดแล้ว</div>
         </div>
       </div>
+
+      {/* Pending Staff Confirmation */}
+      {pendingStaffConfirmation.length > 0 && (
+        <div className="bg-white border border-blue-200 rounded-lg mb-8">
+          <div className="px-6 py-4 border-b border-blue-200 bg-blue-50">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-blue-900">
+                รอยืนยันการฝากเงิน ({pendingStaffConfirmation.length})
+              </h3>
+              <span className="text-sm text-blue-700">
+                กรุณาตรวจสอบยอดที่ผู้ตรวจสอบนำฝากว่าตรงกับยอดที่ส่งหรือไม่
+              </span>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    วันที่ฝาก
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    วันที่ส่งยอด
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ยอดที่ส่ง
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ยอดที่ฝาก
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ผู้นำฝาก
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    การกระทำ
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {pendingStaffConfirmation.map((deposit) => {
+                  const submittedAmount = deposit.dailyClosing.handwrittenNetCash.toNumber()
+                  const depositedAmount = deposit.depositAmount.toNumber()
+                  const difference = depositedAmount - submittedAmount
+                  const hasVariance = Math.abs(difference) > 0.01
+
+                  return (
+                    <tr key={deposit.id} className="hover:bg-blue-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(deposit.depositDate)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(deposit.dailyClosing.closingDate)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
+                        {formatCurrency(submittedAmount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                        <div className={hasVariance ? 'text-orange-600 font-semibold' : 'text-gray-900'}>
+                          {formatCurrency(depositedAmount)}
+                        </div>
+                        {hasVariance && (
+                          <div className="text-xs text-orange-600 mt-0.5">
+                            ({difference > 0 ? '+' : ''}{formatCurrency(difference)})
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {deposit.depositor.firstName} {deposit.depositor.lastName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <a
+                          href={`/dashboard/staff/deposits/${deposit.id}/confirm`}
+                          className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors"
+                        >
+                          ตรวจสอบและยืนยัน
+                        </a>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Recent List */}
       <div className="bg-white border border-gray-200 rounded-lg">

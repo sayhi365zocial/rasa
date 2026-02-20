@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       // Staff can only see their own branch
       filter.branchId = user.branchId
     } else if (branchId) {
-      // Owner/Auditor/Admin can filter by branch
+      // Manager/Owner/Auditor/Admin can filter by branch
       filter.branchId = branchId
     }
 
@@ -76,8 +76,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Only STORE_STAFF and ADMIN can create closings
-    if (user.role !== 'STORE_STAFF' && user.role !== 'ADMIN') {
+    // Only STORE_STAFF, MANAGER, and ADMIN can create closings
+    if (user.role !== 'STORE_STAFF' && user.role !== 'MANAGER' && user.role !== 'ADMIN') {
       return NextResponse.json(
         { success: false, error: { code: 'FORBIDDEN', message: 'Insufficient permissions' } },
         { status: 403 }
@@ -98,6 +98,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Use branchId from user session (STORE_STAFF can only create for their branch)
+    // MANAGER and ADMIN can create for any branch
     const branchId = user.role === 'STORE_STAFF' ? user.branchId : (data.branchId || user.branchId)
 
     if (!branchId) {

@@ -112,6 +112,23 @@ async function main() {
 
   console.log('✅ Created auditor user')
 
+  // Create Manager
+  const manager = await prisma.user.create({
+    data: {
+      email: 'manager@mermed.com',
+      username: 'manager',
+      passwordHash: await bcrypt.hash('Manager@2026', 12),
+      firstName: 'สมพร',
+      lastName: 'จัดการ',
+      phoneNumber: '081-222-2222',
+      role: 'MANAGER',
+      status: 'ACTIVE',
+      branchId: null,
+    },
+  })
+
+  console.log('✅ Created manager user')
+
   // Create Owner
   const owner = await prisma.user.create({
     data: {
@@ -529,7 +546,7 @@ async function main() {
   console.log('\n📊 Seed Summary:')
   console.log('─────────────────────────────────────')
   console.log(`Branches: ${branches.length}`)
-  console.log(`Users: ${staffUsers.length + 3} (${staffUsers.length} staff, 1 auditor, 1 owner, 1 admin)`)
+  console.log(`Users: ${staffUsers.length + 4} (${staffUsers.length} staff, 1 auditor, 1 manager, 1 owner, 1 admin)`)
   console.log(`Bank Accounts: ${bankAccounts.length}`)
   console.log(`Daily Closings:`)
   console.log(`  - SUBMITTED: ${submittedClosings.length}`)
@@ -546,6 +563,10 @@ async function main() {
   console.log('Auditor:')
   console.log('  Email: auditor@mermed.com')
   console.log('  Password: Auditor@2026')
+  console.log('')
+  console.log('Manager:')
+  console.log('  Email: manager@mermed.com')
+  console.log('  Password: Manager@2026')
   console.log('')
   console.log('Owner:')
   console.log('  Email: owner@mermed.com')

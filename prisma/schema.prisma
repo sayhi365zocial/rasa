@@ -16,6 +16,7 @@ datasource db {
 enum UserRole {
   STORE_STAFF
   AUDITOR
+  MANAGER
   OWNER
   ADMIN
 }
@@ -46,6 +47,8 @@ model User {
   cashReceived  DailyClosing[] @relation("CashReceiver")
   deposits      Deposit[]
   depositApprovals Deposit[]   @relation("DepositApprover")
+  depositStaffConfirmations Deposit[] @relation("DepositStaffConfirmer")
+  depositBankConfirmations  Deposit[] @relation("DepositBankConfirmer")
   auditLogs     AuditLog[]
 
   createdAt     DateTime    @default(now())
@@ -169,10 +172,11 @@ model DailyClosing {
 // ========================================
 
 enum DepositApprovalStatus {
-  PENDING     // รอ Owner ตรวจสอบ
-  APPROVED    // Owner อนุมัติแล้ว
-  FLAGGED     // Owner ทำ flag ไว้ (มีข้อสงสัย)
-  REJECTED    // Owner ปฏิเสธ
+  PENDING         // รอ Owner ตรวจสอบ
+  APPROVED        // Owner อนุมัติแล้ว
+  FLAGGED         // Owner ทำ flag ไว้ (มีข้อสงสัย)
+  REJECTED        // Owner ปฏิเสธ
+  BANK_CONFIRMED  // เงินเข้าบัญชีธนาคารแล้ว (Owner ยืนยัน)
 }
 
 model Deposit {
@@ -203,6 +207,21 @@ model Deposit {
   approver          User?         @relation("DepositApprover", fields: [approvedBy], references: [id])
   approvedAt        DateTime?
   approvalRemark    String?       @db.Text
+
+  // Staff Reconfirmation (ยืนยันว่า audit ฝากตรงกับยอดที่ส่ง)
+  isStaffConfirmed      Boolean   @default(false)
+  staffConfirmedBy      String?
+  staffConfirmer        User?     @relation("DepositStaffConfirmer", fields: [staffConfirmedBy], references: [id])
+  staffConfirmedAt      DateTime?
+  staffConfirmRemark    String?   @db.Text
+
+  // Bank Confirmation (Owner ยืนยันว่าเงินเข้าบัญชีแล้ว)
+  isBankConfirmed       Boolean   @default(false)
+  bankConfirmedBy       String?
+  bankConfirmer         User?     @relation("DepositBankConfirmer", fields: [bankConfirmedBy], references: [id])
+  bankConfirmedAt       DateTime?
+  actualDepositAmount   Decimal?  @db.Decimal(10, 2)
+  bankConfirmRemark     String?   @db.Text
 
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt

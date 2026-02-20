@@ -1,6 +1,6 @@
-import { UserRole, ClosingStatus, BranchStatus, UserStatus } from '@prisma/client'
+import { UserRole, ClosingStatus, BranchStatus, UserStatus, DepositApprovalStatus } from '@prisma/client'
 
-export type { UserRole, ClosingStatus, BranchStatus, UserStatus }
+export type { UserRole, ClosingStatus, BranchStatus, UserStatus, DepositApprovalStatus }
 
 // Daily Closing Types
 export interface DailyClosingFormData {
@@ -144,6 +144,23 @@ export const STATUS_LABELS: Record<ClosingStatus, string> = {
 export const ROLE_LABELS: Record<UserRole, string> = {
   STORE_STAFF: 'พนักงานหน้าร้าน',
   AUDITOR: 'ผู้ตรวจสอบ',
+  MANAGER: 'ผู้จัดการ',
   OWNER: 'เจ้าของ',
   ADMIN: 'ผู้ดูแลระบบ',
+}
+
+export const DEPOSIT_STATUS_COLORS: Record<DepositApprovalStatus, string> = {
+  PENDING: 'yellow',
+  APPROVED: 'green',
+  FLAGGED: 'orange',
+  REJECTED: 'red',
+  BANK_CONFIRMED: 'blue',
+}
+
+export const DEPOSIT_STATUS_LABELS: Record<DepositApprovalStatus, string> = {
+  PENDING: 'รอตรวจสอบ',
+  APPROVED: 'อนุมัติแล้ว',
+  FLAGGED: 'ทำ Flag',
+  REJECTED: 'ปฏิเสธ',
+  BANK_CONFIRMED: 'เงินเข้าบัญชีแล้ว',
 }

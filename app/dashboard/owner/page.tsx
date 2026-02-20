@@ -56,6 +56,13 @@ export default async function OwnerDashboardPage() {
     deposited: await db.dailyClosing.count({
       where: { status: 'DEPOSITED' },
     }),
+    // รอยืนยันการรับเงินเข้าบัญชี
+    waitingBankConfirmation: await db.deposit.count({
+      where: {
+        approvalStatus: 'APPROVED',
+        isBankConfirmed: false,
+      },
+    }),
     // ยอดเงินฝากเรียบร้อยแล้ว (30 วัน)
     depositedAmount30Days: await db.deposit.aggregate({
       where: {
@@ -99,6 +106,18 @@ export default async function OwnerDashboardPage() {
         },
       },
       approver: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+      staffConfirmer: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+      bankConfirmer: {
         select: {
           firstName: true,
           lastName: true,
@@ -220,7 +239,7 @@ export default async function OwnerDashboardPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* รอ Auditor ไปรับ */}
         <div className="bg-white border border-orange-200 rounded-lg p-6">
           <div className="text-sm font-medium text-gray-600 mb-2">
@@ -264,6 +283,20 @@ export default async function OwnerDashboardPage() {
             {formatCurrency(stats.depositedAmount30Days._sum.depositAmount?.toNumber() || 0)}
           </div>
           <div className="text-xs text-gray-500">ยอดฝาก 30 วันล่าสุด</div>
+        </div>
+
+        {/* รอยืนยันเงินเข้าบัญชี */}
+        <div className="bg-white border border-blue-200 rounded-lg p-6">
+          <div className="text-sm font-medium text-gray-600 mb-2">
+            รอยืนยันเงินเข้าบัญชี
+          </div>
+          <div className="text-3xl font-bold text-blue-600">
+            {stats.waitingBankConfirmation}
+          </div>
+          <div className="text-sm text-gray-500 mt-1">รายการ</div>
+          <div className="text-xs text-gray-500 mt-2">
+            อนุมัติแล้ว รอยืนยันเงินเข้า
+          </div>
         </div>
       </div>
 
@@ -385,6 +418,8 @@ export default async function OwnerDashboardPage() {
             accountNumber: deposit.accountNumber,
             approvalStatus: deposit.approvalStatus,
             approvalRemark: deposit.approvalRemark,
+            isStaffConfirmed: deposit.isStaffConfirmed,
+            isBankConfirmed: deposit.isBankConfirmed,
             dailyClosing: {
               branch: {
                 branchName: deposit.dailyClosing.branch.branchName,

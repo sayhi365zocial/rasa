@@ -25,6 +25,8 @@ interface Deposit {
   accountNumber: string | null
   approvalStatus: string
   approvalRemark: string | null
+  isStaffConfirmed: boolean
+  isBankConfirmed: boolean
   dailyClosing: DailyClosing
   depositor: Depositor
 }
@@ -40,10 +42,28 @@ export function RecentDepositsTable({ deposits }: Props) {
     router.push(`/dashboard/owner/deposits/${depositId}`)
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, isBankConfirmed: boolean, isStaffConfirmed: boolean) => {
+    if (status === 'BANK_CONFIRMED') {
+      return (
+        <div className="flex flex-col gap-1">
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">💰 เงินเข้าแล้ว</span>
+        </div>
+      )
+    }
+
     switch (status) {
       case 'APPROVED':
-        return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">✓ อนุมัติ</span>
+        return (
+          <div className="flex flex-col gap-1">
+            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">✓ อนุมัติ</span>
+            {!isStaffConfirmed && (
+              <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded">รอ Staff ยืนยัน</span>
+            )}
+            {isStaffConfirmed && !isBankConfirmed && (
+              <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">รอยืนยันเงินเข้า</span>
+            )}
+          </div>
+        )
       case 'FLAGGED':
         return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">⚠ Flag</span>
       case 'REJECTED':
@@ -120,7 +140,7 @@ export function RecentDepositsTable({ deposits }: Props) {
                 </td>
                 <td className="px-6 py-4 text-center">
                   <div className="flex flex-col items-center gap-1">
-                    {getStatusBadge(deposit.approvalStatus)}
+                    {getStatusBadge(deposit.approvalStatus, deposit.isBankConfirmed, deposit.isStaffConfirmed)}
                     {/* Show remark below status if FLAGGED or REJECTED */}
                     {(deposit.approvalStatus === 'FLAGGED' || deposit.approvalStatus === 'REJECTED') && deposit.approvalRemark && (
                       <div className={`text-xs mt-1 max-w-xs ${

@@ -15,12 +15,16 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only AUDITOR and ADMIN can receive cash
-    if (currentUser.role !== 'AUDITOR' && currentUser.role !== 'ADMIN') {
+    // Only AUDITOR, MANAGER, and ADMIN can receive cash
+    if (currentUser.role !== 'AUDITOR' && currentUser.role !== 'MANAGER' && currentUser.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const closingId = params.id
+
+    // Parse request body
+    const body = await request.json()
+    const { discrepancyNote } = body || {}
 
     // Get the closing
     const closing = await db.dailyClosing.findUnique({
@@ -42,6 +46,18 @@ export async function POST(
       )
     }
 
+    // Check for discrepancy - if there's discrepancy, require a note
+    if (closing.hasDiscrepancy && !discrepancyNote) {
+      return NextResponse.json(
+        {
+          error: 'พบความผิดปกติในยอดเงิน กรุณาระบุหมายเหตุ',
+          hasDiscrepancy: true,
+          posCreditVsEdcDiff: closing.posCreditVsEdcDiff?.toNumber(),
+        },
+        { status: 400 }
+      )
+    }
+
     // Update the closing status to CASH_RECEIVED
     const updatedClosing = await db.dailyClosing.update({
       where: { id: closingId },
@@ -49,10 +65,19 @@ export async function POST(
         status: 'CASH_RECEIVED',
         cashReceivedAt: new Date(),
         cashReceivedBy: currentUser.userId,
+        // Update discrepancy remark if provided
+        ...(discrepancyNote && { discrepancyRemark: closing.discrepancyRemark
+          ? `${closing.discrepancyRemark}\n\n[Auditor Note] ${discrepancyNote}`
+          : `[Auditor Note] ${discrepancyNote}`
+        }),
       },
     })
 
     // Create audit log entry
+    const auditRemark = closing.hasDiscrepancy
+      ? `รับเงินจากสาขา ${closing.branch.branchName} จำนวน ${closing.handwrittenNetCash.toNumber()} บาท (มีความผิดปกติ: ${discrepancyNote || 'ไม่ระบุ'})`
+      : `รับเงินจากสาขา ${closing.branch.branchName} จำนวน ${closing.handwrittenNetCash.toNumber()} บาท`
+
     await db.auditLog.create({
       data: {
         userId: currentUser.userId,
@@ -62,13 +87,14 @@ export async function POST(
         fieldName: 'status',
         oldValue: 'SUBMITTED',
         newValue: 'CASH_RECEIVED',
-        remark: `รับเงินจากสาขา ${closing.branch.branchName} จำนวน ${closing.handwrittenNetCash.toNumber()} บาท`,
+        remark: auditRemark,
       },
     })
 
     return NextResponse.json({
       success: true,
       closing: updatedClosing,
+      hasDiscrepancy: closing.hasDiscrepancy,
     })
   } catch (error) {
     console.error('Error receiving cash:', error)
