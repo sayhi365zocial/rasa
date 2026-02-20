@@ -85,7 +85,7 @@ export default async function AdminBranchesPage() {
             สาขาที่เปิดใช้งาน
           </div>
           <div className="text-3xl font-bold text-green-600">
-            {branches.filter(b => b.status === 'ACTIVE').length}
+            {branches.filter((b: typeof branches[0]) => b.status === 'ACTIVE').length}
           </div>
           <div className="text-sm text-gray-500 mt-1">สาขา</div>
         </div>
@@ -95,7 +95,7 @@ export default async function AdminBranchesPage() {
             พนักงานทั้งหมด
           </div>
           <div className="text-3xl font-bold text-blue-600">
-            {branches.reduce((sum, b) => sum + b._count.users, 0)}
+            {branches.reduce((sum: number, b: typeof branches[0]) => sum + b._count.users, 0)}
           </div>
           <div className="text-sm text-gray-500 mt-1">คน</div>
         </div>
@@ -103,7 +103,7 @@ export default async function AdminBranchesPage() {
 
       {/* Branch Management Table */}
       <BranchManagementTable
-        branches={branches.map(b => ({
+        branches={branches.map((b: typeof branches[0]) => ({
           id: b.id,
           branchCode: b.branchCode,
           branchName: b.branchName,

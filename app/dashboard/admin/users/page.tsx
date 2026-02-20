@@ -88,7 +88,7 @@ export default async function AdminUsersPage() {
             ผู้ใช้งานที่ Active
           </div>
           <div className="text-3xl font-bold text-green-600">
-            {users.filter(u => u.status === 'ACTIVE').length}
+            {users.filter((u: typeof users[0]) => u.status === 'ACTIVE').length}
           </div>
           <div className="text-sm text-gray-500 mt-1">คน</div>
         </div>
@@ -98,7 +98,7 @@ export default async function AdminUsersPage() {
             พนักงานหน้าร้าน
           </div>
           <div className="text-3xl font-bold text-blue-600">
-            {users.filter(u => u.role === 'STORE_STAFF').length}
+            {users.filter((u: typeof users[0]) => u.role === 'STORE_STAFF').length}
           </div>
           <div className="text-sm text-gray-500 mt-1">คน</div>
         </div>
@@ -116,7 +116,7 @@ export default async function AdminUsersPage() {
 
       {/* User Management Table */}
       <UserManagementTable
-        users={users.map(u => ({
+        users={users.map((u: typeof users[0]) => ({
           id: u.id,
           email: u.email,
           username: u.username,
@@ -133,7 +133,7 @@ export default async function AdminUsersPage() {
           createdAt: u.createdAt,
           lastLoginAt: u.lastLoginAt,
         }))}
-        branches={branches.map(b => ({
+        branches={branches.map((b: typeof branches[0]) => ({
           id: b.id,
           branchCode: b.branchCode,
           branchName: b.branchName,
