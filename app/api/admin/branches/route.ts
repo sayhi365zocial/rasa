@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: branches.map(b => ({
+      data: branches.map((b: typeof branches[0]) => ({
         id: b.id,
         branchCode: b.branchCode,
         branchName: b.branchName,

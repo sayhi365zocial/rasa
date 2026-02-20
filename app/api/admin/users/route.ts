@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: users.map(u => ({
+      data: users.map((u: typeof users[0]) => ({
         id: u.id,
         email: u.email,
         username: u.username,
