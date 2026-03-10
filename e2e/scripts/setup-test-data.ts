@@ -265,7 +265,7 @@ async function setupTestData() {
 
     if (existingAccess.length === 0) {
       await prisma.managerBranchAccess.createMany({
-        data: branches.slice(0, 3).map(branch => ({
+        data: branches.slice(0, 3).map((branch: any) => ({
           userId: managerUser.id,
           branchId: branch.id,
           createdBy: adminUser?.id || managerUser.id,
