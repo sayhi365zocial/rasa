@@ -11,6 +11,7 @@ async function main() {
   await prisma.auditLog.deleteMany()
   await prisma.deposit.deleteMany()
   await prisma.dailyClosing.deleteMany()
+  await prisma.managerBranchAccess.deleteMany()
   await prisma.user.deleteMany()
   await prisma.branch.deleteMany()
   await prisma.systemConfig.deleteMany()
@@ -85,7 +86,7 @@ async function main() {
           firstName: `สมชาย${index + 1}`,
           lastName: 'ใจดี',
           phoneNumber: `081-000-${String(index + 1).padStart(4, '0')}`,
-          role: 'STORE_STAFF',
+          role: 'STAFF',
           status: 'ACTIVE',
           branchId: branch.id,
         },
@@ -104,13 +105,30 @@ async function main() {
       firstName: 'สมหญิง',
       lastName: 'ตรวจสอบ',
       phoneNumber: '081-111-1111',
-      role: 'AUDITOR',
+      role: 'AUDIT',
       status: 'ACTIVE',
       branchId: null,
     },
   })
 
   console.log('✅ Created auditor user')
+
+  // Create Checker
+  const checker = await prisma.user.create({
+    data: {
+      email: 'checker@mermaid.clinic',
+      username: 'checker',
+      passwordHash: await bcrypt.hash('password123', 12),
+      firstName: 'ผู้ตรวจสอบ',
+      lastName: 'ยอดเงิน',
+      phoneNumber: '081-333-3333',
+      role: 'CHECKER',
+      status: 'ACTIVE',
+      branchId: branches[0].id, // same branch as first staff (Rama9)
+    },
+  })
+
+  console.log('✅ Created checker user')
 
   // Create Manager
   const manager = await prisma.user.create({
@@ -162,6 +180,34 @@ async function main() {
   })
 
   console.log('✅ Created admin user')
+
+  // Create ManagerBranchAccess records for Manager
+  console.log('🔑 Creating manager branch access...')
+  const managerBranchAccess = await Promise.all([
+    prisma.managerBranchAccess.create({
+      data: {
+        userId: manager.id,
+        branchId: branches[0].id, // Rama9
+        createdBy: admin.id,
+      },
+    }),
+    prisma.managerBranchAccess.create({
+      data: {
+        userId: manager.id,
+        branchId: branches[1].id, // Phuket
+        createdBy: admin.id,
+      },
+    }),
+    prisma.managerBranchAccess.create({
+      data: {
+        userId: manager.id,
+        branchId: branches[2].id, // Pattaya
+        createdBy: admin.id,
+      },
+    }),
+  ])
+
+  console.log(`✅ Created ${managerBranchAccess.length} manager branch access records`)
 
   // Create Company Bank Accounts
   console.log('🏦 Creating company bank accounts...')
@@ -546,7 +592,8 @@ async function main() {
   console.log('\n📊 Seed Summary:')
   console.log('─────────────────────────────────────')
   console.log(`Branches: ${branches.length}`)
-  console.log(`Users: ${staffUsers.length + 4} (${staffUsers.length} staff, 1 auditor, 1 manager, 1 owner, 1 admin)`)
+  console.log(`Users: ${staffUsers.length + 5} (${staffUsers.length} staff, 1 checker, 1 auditor, 1 manager, 1 owner, 1 admin)`)
+  console.log(`Manager Branch Access: ${managerBranchAccess.length}`)
   console.log(`Bank Accounts: ${bankAccounts.length}`)
   console.log(`Daily Closings:`)
   console.log(`  - SUBMITTED: ${submittedClosings.length}`)
@@ -560,6 +607,10 @@ async function main() {
   console.log('  Email: staff.br001@mermed.com')
   console.log('  Password: Staff@2026')
   console.log('')
+  console.log('Checker:')
+  console.log('  Email: checker@mermaid.clinic')
+  console.log('  Password: password123')
+  console.log('')
   console.log('Auditor:')
   console.log('  Email: auditor@mermed.com')
   console.log('  Password: Auditor@2026')
@@ -567,6 +618,7 @@ async function main() {
   console.log('Manager:')
   console.log('  Email: manager@mermed.com')
   console.log('  Password: Manager@2026')
+  console.log('  Branch Access: Rama9, Phuket, Pattaya')
   console.log('')
   console.log('Owner:')
   console.log('  Email: owner@mermed.com')

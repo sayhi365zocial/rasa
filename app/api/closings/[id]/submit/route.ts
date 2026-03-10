@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth/session'
+import { hasPermission, canAccessBranch } from '@/lib/auth/permissions'
 
 export async function POST(
   request: NextRequest,
@@ -15,6 +16,14 @@ export async function POST(
       )
     }
 
+    // Check if user has permission to submit closings
+    if (!hasPermission(user.role, 'SUBMIT_CLOSING')) {
+      return NextResponse.json(
+        { success: false, error: { code: 'FORBIDDEN', message: 'Insufficient permissions' } },
+        { status: 403 }
+      )
+    }
+
     const closing = await db.dailyClosing.findUnique({
       where: { id: params.id },
     })
@@ -26,12 +35,15 @@ export async function POST(
       )
     }
 
-    // Check permission
-    if (user.role === 'STORE_STAFF' && closing.branchId !== user.branchId) {
-      return NextResponse.json(
-        { success: false, error: { code: 'FORBIDDEN', message: 'ไม่สามารถส่งยอดสาขาอื่นได้' } },
-        { status: 403 }
-      )
+    // Check branch access permission
+    if (user.role !== 'OWNER' && user.role !== 'ADMIN') {
+      const hasAccess = await canAccessBranch(user.userId, user.role, closing.branchId, user.branchId)
+      if (!hasAccess) {
+        return NextResponse.json(
+          { success: false, error: { code: 'FORBIDDEN', message: 'ไม่สามารถส่งยอดสาขาอื่นได้' } },
+          { status: 403 }
+        )
+      }
     }
 
     // Can only submit DRAFT status
@@ -45,11 +57,12 @@ export async function POST(
       )
     }
 
-    // Update status to SUBMITTED
+    // Update status to SUBMITTED with submission tracking
     const updated = await db.dailyClosing.update({
       where: { id: params.id },
       data: {
         status: 'SUBMITTED',
+        submittedBy: user.userId,
         submittedAt: new Date(),
       },
     })

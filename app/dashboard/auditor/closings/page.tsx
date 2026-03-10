@@ -25,7 +25,7 @@ export default async function ClosingsListPage({ searchParams }: PageProps) {
     redirect('/login')
   }
 
-  if (currentUser.role !== 'AUDITOR' && currentUser.role !== 'ADMIN') {
+  if (currentUser.role !== 'AUDIT' && currentUser.role !== 'ADMIN') {
     redirect('/dashboard')
   }
 

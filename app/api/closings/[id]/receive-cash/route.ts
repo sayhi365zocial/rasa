@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth/session'
+import { hasPermission } from '@/lib/auth/permissions'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,8 +16,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only AUDITOR, MANAGER, and ADMIN can receive cash
-    if (currentUser.role !== 'AUDITOR' && currentUser.role !== 'MANAGER' && currentUser.role !== 'ADMIN') {
+    // Only AUDIT, MANAGER, and OWNER can receive cash
+    if (!hasPermission(currentUser.role, 'RECEIVE_CASH')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

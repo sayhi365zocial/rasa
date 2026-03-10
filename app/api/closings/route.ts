@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth/session'
+import { canAccessBranch } from '@/lib/auth/permissions'
 
 // GET /api/closings - List daily closings
 export async function GET(request: NextRequest) {
@@ -20,11 +21,31 @@ export async function GET(request: NextRequest) {
     // Build filter based on user role
     const filter: any = {}
 
-    if (user.role === 'STORE_STAFF') {
-      // Staff can only see their own branch
+    if (user.role === 'STAFF' || user.role === 'CHECKER') {
+      // Staff and Checker can only see their own branch
       filter.branchId = user.branchId
+    } else if (user.role === 'MANAGER') {
+      // Manager can see branches they have access to
+      if (branchId) {
+        // Validate branch access for manager
+        const hasAccess = await canAccessBranch(user.userId, user.role, branchId, user.branchId)
+        if (!hasAccess) {
+          return NextResponse.json(
+            { success: false, error: { code: 'FORBIDDEN', message: 'No access to this branch' } },
+            { status: 403 }
+          )
+        }
+        filter.branchId = branchId
+      } else {
+        // Get all branches the manager has access to
+        const managerAccess = await db.managerBranchAccess.findMany({
+          where: { userId: user.userId },
+          select: { branchId: true }
+        })
+        filter.branchId = { in: managerAccess.map((a: { branchId: string }) => a.branchId) }
+      }
     } else if (branchId) {
-      // Manager/Owner/Auditor/Admin can filter by branch
+      // Owner/Audit/Admin can filter by branch
       filter.branchId = branchId
     }
 
@@ -76,8 +97,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Only STORE_STAFF, MANAGER, and ADMIN can create closings
-    if (user.role !== 'STORE_STAFF' && user.role !== 'MANAGER' && user.role !== 'ADMIN') {
+    // Only STAFF, CHECKER, MANAGER, and OWNER can create closings
+    if (!['STAFF', 'CHECKER', 'MANAGER', 'OWNER'].includes(user.role)) {
       return NextResponse.json(
         { success: false, error: { code: 'FORBIDDEN', message: 'Insufficient permissions' } },
         { status: 403 }
@@ -97,9 +118,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Use branchId from user session (STORE_STAFF can only create for their branch)
-    // MANAGER and ADMIN can create for any branch
-    const branchId = user.role === 'STORE_STAFF' ? user.branchId : (data.branchId || user.branchId)
+    // Determine branch based on role
+    let branchId: string | undefined | null
+
+    if (user.role === 'STAFF' || user.role === 'CHECKER') {
+      // Staff and Checker can only create for their branch
+      branchId = user.branchId
+    } else if (user.role === 'MANAGER') {
+      // Manager can create for any branch they have access to
+      branchId = data.branchId || user.branchId
+      if (branchId) {
+        const hasAccess = await canAccessBranch(user.userId, user.role, branchId, user.branchId)
+        if (!hasAccess) {
+          return NextResponse.json(
+            { success: false, error: { code: 'FORBIDDEN', message: 'No access to this branch' } },
+            { status: 403 }
+          )
+        }
+      }
+    } else {
+      // Owner can create for any branch
+      branchId = data.branchId || user.branchId
+    }
 
     if (!branchId) {
       return NextResponse.json(

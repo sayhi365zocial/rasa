@@ -14,8 +14,9 @@ datasource db {
 // ========================================
 
 enum UserRole {
-  STORE_STAFF
-  AUDITOR
+  STAFF
+  CHECKER
+  AUDIT
   MANAGER
   OWNER
   ADMIN
@@ -28,32 +29,34 @@ enum UserStatus {
 }
 
 model User {
-  id            String      @id @default(cuid())
-  email         String      @unique
-  username      String      @unique
-  passwordHash  String
-  firstName     String
-  lastName      String
-  phoneNumber   String?
-  role          UserRole
-  status        UserStatus  @default(ACTIVE)
+  id           String     @id @default(cuid())
+  email        String     @unique
+  username     String     @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  phoneNumber  String?
+  role         UserRole
+  status       UserStatus @default(ACTIVE)
 
   // Relations
-  branchId      String?     // NULL for Owner/Admin, Required for Store Staff
-  branch        Branch?     @relation(fields: [branchId], references: [id])
+  branchId            String? // NULL for Owner/Admin, Required for Store Staff
+  branch              Branch?               @relation(fields: [branchId], references: [id])
+  managerBranchAccess ManagerBranchAccess[]
 
   // Activity tracking
-  dailyClosings DailyClosing[]
-  cashReceived  DailyClosing[] @relation("CashReceiver")
-  deposits      Deposit[]
-  depositApprovals Deposit[]   @relation("DepositApprover")
-  depositStaffConfirmations Deposit[] @relation("DepositStaffConfirmer")
-  depositBankConfirmations  Deposit[] @relation("DepositBankConfirmer")
-  auditLogs     AuditLog[]
+  closingsSubmitted         DailyClosing[] @relation("ClosingSubmitter")
+  closingsVerified          DailyClosing[] @relation("ClosingVerifier")
+  cashReceived              DailyClosing[] @relation("CashReceiver")
+  deposits                  Deposit[]
+  depositApprovals          Deposit[]      @relation("DepositApprover")
+  depositStaffConfirmations Deposit[]      @relation("DepositStaffConfirmer")
+  depositBankConfirmations  Deposit[]      @relation("DepositBankConfirmer")
+  auditLogs                 AuditLog[]
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  lastLoginAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
 
   @@index([email])
   @@index([role, status])
@@ -70,22 +73,37 @@ enum BranchStatus {
 }
 
 model Branch {
-  id            String        @id @default(cuid())
-  branchCode    String        @unique
-  branchName    String
-  address       String
-  phoneNumber   String?
-  status        BranchStatus  @default(ACTIVE)
+  id          String       @id @default(cuid())
+  branchCode  String       @unique
+  branchName  String
+  address     String
+  phoneNumber String?
+  status      BranchStatus @default(ACTIVE)
 
   // Relations
   users         User[]
   dailyClosings DailyClosing[]
+  managerAccess ManagerBranchAccess[]
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([branchCode])
   @@index([status])
+}
+
+model ManagerBranchAccess {
+  id        String   @id @default(cuid())
+  userId    String
+  branchId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  createdBy String
+
+  @@unique([userId, branchId])
+  @@index([userId])
+  @@index([branchId])
 }
 
 // ========================================
@@ -102,64 +120,69 @@ enum ClosingStatus {
 }
 
 model DailyClosing {
-  id            String         @id @default(cuid())
+  id String @id @default(cuid())
 
   // Basic Info
-  closingDate   DateTime       @db.Date
-  branchId      String
-  branch        Branch         @relation(fields: [branchId], references: [id])
-  submittedBy   String
-  submitter     User           @relation(fields: [submittedBy], references: [id])
-  status        ClosingStatus  @default(DRAFT)
+  closingDate DateTime      @db.Date
+  branchId    String
+  branch      Branch        @relation(fields: [branchId], references: [id])
+  submittedBy String
+  submitter   User          @relation("ClosingSubmitter", fields: [submittedBy], references: [id])
+  status      ClosingStatus @default(DRAFT)
 
   // ========== POS DATA ==========
   posImageUrl       String?
-  posTotalSales     Decimal    @db.Decimal(10, 2)
-  posCash           Decimal    @db.Decimal(10, 2)
-  posCredit         Decimal    @db.Decimal(10, 2)
-  posTransfer       Decimal    @db.Decimal(10, 2)
-  posExpenses       Decimal    @db.Decimal(10, 2)
-  otherIncome       Decimal?   @default(0) @db.Decimal(10, 2)
-  otherIncomeRemark String?    @db.Text
+  posTotalSales     Decimal  @db.Decimal(10, 2)
+  posCash           Decimal  @db.Decimal(10, 2)
+  posCredit         Decimal  @db.Decimal(10, 2)
+  posTransfer       Decimal  @db.Decimal(10, 2)
+  posExpenses       Decimal  @db.Decimal(10, 2)
+  otherIncome       Decimal? @default(0) @db.Decimal(10, 2)
+  otherIncomeRemark String?  @db.Text
 
-  posStartTime      String?
-  posEndTime        String?
-  posBillCount      Int?
-  posAvgPerBill     Decimal?   @db.Decimal(10, 2)
+  posStartTime  String?
+  posEndTime    String?
+  posBillCount  Int?
+  posAvgPerBill Decimal? @db.Decimal(10, 2)
 
   // ========== HANDWRITTEN SUMMARY ==========
-  handwrittenImageUrl   String?
-  handwrittenCashCount  Decimal    @db.Decimal(10, 2)
-  handwrittenExpenses   Decimal    @db.Decimal(10, 2)
+  handwrittenImageUrl     String?
+  handwrittenCashCount    Decimal @db.Decimal(10, 2)
+  handwrittenExpenses     Decimal @db.Decimal(10, 2)
   handwrittenExpensesList Json?
-  handwrittenNetCash    Decimal    @db.Decimal(10, 2)
+  handwrittenNetCash      Decimal @db.Decimal(10, 2)
 
   // ========== EDC SLIP ==========
   edcImageUrl       String?
-  edcTotalAmount    Decimal    @db.Decimal(10, 2)
+  edcTotalAmount    Decimal   @db.Decimal(10, 2)
   edcSettlementDate DateTime?
   edcBatchNumber    String?
   edcBreakdown      Json?
 
   // ========== VALIDATION & DISCREPANCY ==========
-  hasDiscrepancy        Boolean   @default(false)
-  discrepancyRemark     String?   @db.Text
-  posCreditVsEdcDiff    Decimal?  @db.Decimal(10, 2)
+  hasDiscrepancy            Boolean  @default(false)
+  discrepancyRemark         String?  @db.Text
+  posCreditVsEdcDiff        Decimal? @db.Decimal(10, 2)
   posTotalVsHandwrittenDiff Decimal? @db.Decimal(10, 2)
 
   // ========== AUDITOR PROCESS ==========
-  cashReceivedBy    String?
-  cashReceiver      User?      @relation("CashReceiver", fields: [cashReceivedBy], references: [id])
-  cashReceivedAt    DateTime?
+  cashReceivedBy String?
+  cashReceiver   User?     @relation("CashReceiver", fields: [cashReceivedBy], references: [id])
+  cashReceivedAt DateTime?
+
+  // ========== CLOSING TRACKING ==========
+  verifiedBy String?
+  verifiedAt DateTime?
+  verifier   User?     @relation("ClosingVerifier", fields: [verifiedBy], references: [id])
 
   // Relations
-  deposit           Deposit?
+  deposit Deposit?
 
   // Timestamps
-  submittedAt       DateTime?
-  completedAt       DateTime?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  submittedAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@unique([branchId, closingDate])
   @@index([status, closingDate])
@@ -172,59 +195,59 @@ model DailyClosing {
 // ========================================
 
 enum DepositApprovalStatus {
-  PENDING         // รอ Owner ตรวจสอบ
-  APPROVED        // Owner อนุมัติแล้ว
-  FLAGGED         // Owner ทำ flag ไว้ (มีข้อสงสัย)
-  REJECTED        // Owner ปฏิเสธ
-  BANK_CONFIRMED  // เงินเข้าบัญชีธนาคารแล้ว (Owner ยืนยัน)
+  PENDING // รอ Owner ตรวจสอบ
+  APPROVED // Owner อนุมัติแล้ว
+  FLAGGED // Owner ทำ flag ไว้ (มีข้อสงสัย)
+  REJECTED // Owner ปฏิเสธ
+  BANK_CONFIRMED // เงินเข้าบัญชีธนาคารแล้ว (Owner ยืนยัน)
 }
 
 model Deposit {
-  id                String        @id @default(cuid())
+  id String @id @default(cuid())
 
-  dailyClosingId    String        @unique
-  dailyClosing      DailyClosing  @relation(fields: [dailyClosingId], references: [id])
+  dailyClosingId String       @unique
+  dailyClosing   DailyClosing @relation(fields: [dailyClosingId], references: [id])
 
-  depositSlipUrl    String
-  depositAmount     Decimal       @db.Decimal(10, 2)
-  depositDate       DateTime      @db.Date
-  depositTime       String?
-  bankName          String?
-  bankBranch        String?
-  accountNumber     String?
+  depositSlipUrl String
+  depositAmount  Decimal  @db.Decimal(10, 2)
+  depositDate    DateTime @db.Date
+  depositTime    String?
+  bankName       String?
+  bankBranch     String?
+  accountNumber  String?
 
-  amountMatched     Boolean       @default(false)
-  varianceAmount    Decimal?      @db.Decimal(10, 2)
-  varianceReason    String?       @db.Text
+  amountMatched  Boolean  @default(false)
+  varianceAmount Decimal? @db.Decimal(10, 2)
+  varianceReason String?  @db.Text
 
-  depositedBy       String
-  depositor         User          @relation(fields: [depositedBy], references: [id])
-  depositedAt       DateTime      @default(now())
+  depositedBy String
+  depositor   User     @relation(fields: [depositedBy], references: [id])
+  depositedAt DateTime @default(now())
 
   // Owner Approval
-  approvalStatus    DepositApprovalStatus @default(PENDING)
-  approvedBy        String?
-  approver          User?         @relation("DepositApprover", fields: [approvedBy], references: [id])
-  approvedAt        DateTime?
-  approvalRemark    String?       @db.Text
+  approvalStatus DepositApprovalStatus @default(PENDING)
+  approvedBy     String?
+  approver       User?                 @relation("DepositApprover", fields: [approvedBy], references: [id])
+  approvedAt     DateTime?
+  approvalRemark String?               @db.Text
 
   // Staff Reconfirmation (ยืนยันว่า audit ฝากตรงกับยอดที่ส่ง)
-  isStaffConfirmed      Boolean   @default(false)
-  staffConfirmedBy      String?
-  staffConfirmer        User?     @relation("DepositStaffConfirmer", fields: [staffConfirmedBy], references: [id])
-  staffConfirmedAt      DateTime?
-  staffConfirmRemark    String?   @db.Text
+  isStaffConfirmed   Boolean   @default(false)
+  staffConfirmedBy   String?
+  staffConfirmer     User?     @relation("DepositStaffConfirmer", fields: [staffConfirmedBy], references: [id])
+  staffConfirmedAt   DateTime?
+  staffConfirmRemark String?   @db.Text
 
   // Bank Confirmation (Owner ยืนยันว่าเงินเข้าบัญชีแล้ว)
-  isBankConfirmed       Boolean   @default(false)
-  bankConfirmedBy       String?
-  bankConfirmer         User?     @relation("DepositBankConfirmer", fields: [bankConfirmedBy], references: [id])
-  bankConfirmedAt       DateTime?
-  actualDepositAmount   Decimal?  @db.Decimal(10, 2)
-  bankConfirmRemark     String?   @db.Text
+  isBankConfirmed     Boolean   @default(false)
+  bankConfirmedBy     String?
+  bankConfirmer       User?     @relation("DepositBankConfirmer", fields: [bankConfirmedBy], references: [id])
+  bankConfirmedAt     DateTime?
+  actualDepositAmount Decimal?  @db.Decimal(10, 2)
+  bankConfirmRemark   String?   @db.Text
 
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([depositDate])
   @@index([depositedBy])
@@ -246,23 +269,23 @@ enum AuditAction {
 }
 
 model AuditLog {
-  id            String      @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId        String
-  user          User        @relation(fields: [userId], references: [id])
-  action        AuditAction
-  entityType    String
-  entityId      String
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  action     AuditAction
+  entityType String
+  entityId   String
 
-  fieldName     String?
-  oldValue      String?     @db.Text
-  newValue      String?     @db.Text
+  fieldName String?
+  oldValue  String? @db.Text
+  newValue  String? @db.Text
 
-  ipAddress     String?
-  userAgent     String?     @db.Text
-  remark        String?     @db.Text
+  ipAddress String?
+  userAgent String? @db.Text
+  remark    String? @db.Text
 
-  createdAt     DateTime    @default(now())
+  createdAt DateTime @default(now())
 
   @@index([entityType, entityId])
   @@index([userId, createdAt])
@@ -280,15 +303,15 @@ enum BankAccountStatus {
 
 model CompanyBankAccount {
   id            String            @id @default(cuid())
-  bankName      String            // ธนาคารกสิกรไทย, ธนาคารไทยพาณิชย์, etc.
+  bankName      String // ธนาคารกสิกรไทย, ธนาคารไทยพาณิชย์, etc.
   accountNumber String
-  accountName   String            // ชื่อบัญชี
-  bankBranch    String?           // สาขาธนาคาร
+  accountName   String // ชื่อบัญชี
+  bankBranch    String? // สาขาธนาคาร
   isDefault     Boolean           @default(false)
   status        BankAccountStatus @default(ACTIVE)
 
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([isDefault])
@@ -299,14 +322,14 @@ model CompanyBankAccount {
 // ========================================
 
 model SystemConfig {
-  id            String      @id @default(cuid())
-  key           String      @unique
-  value         String      @db.Text
-  description   String?     @db.Text
-  dataType      String      @default("string")
+  id          String  @id @default(cuid())
+  key         String  @unique
+  value       String  @db.Text
+  description String? @db.Text
+  dataType    String  @default("string")
 
-  updatedAt     DateTime    @updatedAt
-  createdAt     DateTime    @default(now())
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 
   @@index([key])
 }

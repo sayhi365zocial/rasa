@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Only AUDITOR, MANAGER, and ADMIN can create deposits
-    if (currentUser.role !== 'AUDITOR' && currentUser.role !== 'MANAGER' && currentUser.role !== 'ADMIN') {
+    // Only AUDIT, MANAGER, and OWNER can create deposits
+    if (currentUser.role !== 'AUDIT' && currentUser.role !== 'MANAGER' && currentUser.role !== 'OWNER') {
       return NextResponse.json(
         {
           success: false,

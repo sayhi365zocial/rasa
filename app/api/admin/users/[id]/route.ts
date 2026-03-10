@@ -16,8 +16,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only ADMIN can update users
-    if (currentUser.role !== 'ADMIN') {
+    // Only OWNER and ADMIN can update users
+    if (currentUser.role !== 'OWNER' && currentUser.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -46,7 +46,7 @@ export async function PUT(
 
     // Validate role if provided
     if (role) {
-      const validRoles = ['STORE_STAFF', 'AUDITOR', 'MANAGER', 'OWNER', 'ADMIN']
+      const validRoles = ['STAFF', 'AUDIT', 'MANAGER', 'OWNER', 'ADMIN']
       if (!validRoles.includes(role)) {
         return NextResponse.json(
           { error: 'Invalid role' },
@@ -54,10 +54,10 @@ export async function PUT(
         )
       }
 
-      // Validate branchId for STORE_STAFF
-      if (role === 'STORE_STAFF' && !branchId) {
+      // Validate branchId for STAFF
+      if (role === 'STAFF' && !branchId) {
         return NextResponse.json(
-          { error: 'Branch is required for STORE_STAFF role' },
+          { error: 'Branch is required for STAFF role' },
           { status: 400 }
         )
       }
@@ -102,7 +102,7 @@ export async function PUT(
 
     // Handle branchId based on role
     if (role) {
-      if (role === 'STORE_STAFF') {
+      if (role === 'STAFF') {
         updateData.branchId = branchId
       } else {
         updateData.branchId = null
@@ -172,8 +172,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only ADMIN can delete users
-    if (currentUser.role !== 'ADMIN') {
+    // Only OWNER and ADMIN can delete users
+    if (currentUser.role !== 'OWNER' && currentUser.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

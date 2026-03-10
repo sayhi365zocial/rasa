@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth/session'
+import { canAccessBranch } from '@/lib/auth/permissions'
 
 // GET /api/closings/[id] - Get single closing details
 export async function GET(
@@ -38,12 +39,15 @@ export async function GET(
       )
     }
 
-    // Check permission
-    if (user.role === 'STORE_STAFF' && closing.branchId !== user.branchId) {
-      return NextResponse.json(
-        { success: false, error: { code: 'FORBIDDEN', message: 'Cannot view other branch closings' } },
-        { status: 403 }
-      )
+    // Check branch access permission
+    if (user.role !== 'OWNER' && user.role !== 'ADMIN') {
+      const hasAccess = await canAccessBranch(user.userId, user.role, closing.branchId, user.branchId)
+      if (!hasAccess) {
+        return NextResponse.json(
+          { success: false, error: { code: 'FORBIDDEN', message: 'Cannot view other branch closings' } },
+          { status: 403 }
+        )
+      }
     }
 
     return NextResponse.json({
@@ -87,12 +91,15 @@ export async function PATCH(
       )
     }
 
-    // Check permission
-    if (user.role === 'STORE_STAFF' && closing.branchId !== user.branchId) {
-      return NextResponse.json(
-        { success: false, error: { code: 'FORBIDDEN', message: 'Cannot edit other branch closings' } },
-        { status: 403 }
-      )
+    // Check branch access permission
+    if (user.role !== 'OWNER' && user.role !== 'ADMIN') {
+      const hasAccess = await canAccessBranch(user.userId, user.role, closing.branchId, user.branchId)
+      if (!hasAccess) {
+        return NextResponse.json(
+          { success: false, error: { code: 'FORBIDDEN', message: 'Cannot edit other branch closings' } },
+          { status: 403 }
+        )
+      }
     }
 
     // Can only edit DRAFT
@@ -176,12 +183,15 @@ export async function DELETE(
       )
     }
 
-    // Check permission
-    if (user.role === 'STORE_STAFF' && closing.branchId !== user.branchId) {
-      return NextResponse.json(
-        { success: false, error: { code: 'FORBIDDEN', message: 'Cannot delete other branch closings' } },
-        { status: 403 }
-      )
+    // Check branch access permission
+    if (user.role !== 'OWNER' && user.role !== 'ADMIN') {
+      const hasAccess = await canAccessBranch(user.userId, user.role, closing.branchId, user.branchId)
+      if (!hasAccess) {
+        return NextResponse.json(
+          { success: false, error: { code: 'FORBIDDEN', message: 'Cannot delete other branch closings' } },
+          { status: 403 }
+        )
+      }
     }
 
     // Can only delete DRAFT

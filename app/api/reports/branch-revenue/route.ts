@@ -9,8 +9,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only OWNER and ADMIN can access this report
-    if (user.role !== 'OWNER' && user.role !== 'ADMIN') {
+    // Only OWNER can access this report
+    if (user.role !== 'OWNER') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

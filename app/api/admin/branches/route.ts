@@ -12,8 +12,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only ADMIN can manage branches
-    if (user.role !== 'ADMIN') {
+    // Only OWNER and ADMIN can manage branches
+    if (user.role !== 'OWNER' && user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -66,8 +66,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only ADMIN can create branches
-    if (currentUser.role !== 'ADMIN') {
+    // Only OWNER and ADMIN can create branches
+    if (currentUser.role !== 'OWNER' && currentUser.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

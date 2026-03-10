@@ -17,8 +17,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only STORE_STAFF can confirm deposits
-    if (user.role !== 'STORE_STAFF') {
+    // Only STAFF can confirm deposits
+    if (user.role !== 'STAFF') {
       return NextResponse.json(
         { error: 'เฉพาะพนักงานหน้าร้านเท่านั้นที่สามารถยืนยันการฝากเงินได้' },
         { status: 403 }

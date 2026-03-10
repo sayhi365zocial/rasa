@@ -8,6 +8,7 @@
 TRUNCATE TABLE "AuditLog" CASCADE;
 TRUNCATE TABLE "Deposit" CASCADE;
 TRUNCATE TABLE "DailyClosing" CASCADE;
+TRUNCATE TABLE "ManagerBranchAccess" CASCADE;
 TRUNCATE TABLE "User" CASCADE;
 TRUNCATE TABLE "Branch" CASCADE;
 TRUNCATE TABLE "SystemConfig" CASCADE;
@@ -23,21 +24,29 @@ INSERT INTO "Branch" (id, "branchCode", "branchName", address, "phoneNumber", st
 ('branch_chiangmai', 'BR005', 'MerMed Chiang Mai', '888 ถ.นิมมานเหมินท์ ต.สุเทพ อ.เมือง จ.เชียงใหม่ 50200', '053-123-456', 'ACTIVE', NOW(), NOW());
 
 -- ============================================
--- 2. USERS (8 users)
+-- 2. USERS (9 users)
 -- Password สำหรับทุกคน: bcrypt hash ของ 'Staff@2026', 'Auditor@2026', etc.
 -- ============================================
 
 -- Store Staff (5 คน - 1 คนต่อสาขา)
 INSERT INTO "User" (id, email, username, "passwordHash", "firstName", "lastName", "phoneNumber", role, status, "branchId", "createdAt", "updatedAt") VALUES
-('staff_rama9', 'staff.br001@mermed.com', 'staff.br001', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมชาย1', 'ใจดี', '081-000-0001', 'STORE_STAFF', 'ACTIVE', 'branch_rama9', NOW(), NOW()),
-('staff_phuket', 'staff.br002@mermed.com', 'staff.br002', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมชาย2', 'ใจดี', '081-000-0002', 'STORE_STAFF', 'ACTIVE', 'branch_phuket', NOW(), NOW()),
-('staff_pattaya', 'staff.br003@mermed.com', 'staff.br003', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมชาย3', 'ใจดี', '081-000-0003', 'STORE_STAFF', 'ACTIVE', 'branch_pattaya', NOW(), NOW()),
-('staff_central', 'staff.br004@mermed.com', 'staff.br004', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมชาย4', 'ใจดี', '081-000-0004', 'STORE_STAFF', 'ACTIVE', 'branch_central', NOW(), NOW()),
-('staff_chiangmai', 'staff.br005@mermed.com', 'staff.br005', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมชาย5', 'ใจดี', '081-000-0005', 'STORE_STAFF', 'ACTIVE', 'branch_chiangmai', NOW(), NOW());
+('staff_rama9', 'staff.br001@mermed.com', 'staff.br001', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมชาย1', 'ใจดี', '081-000-0001', 'STAFF', 'ACTIVE', 'branch_rama9', NOW(), NOW()),
+('staff_phuket', 'staff.br002@mermed.com', 'staff.br002', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมชาย2', 'ใจดี', '081-000-0002', 'STAFF', 'ACTIVE', 'branch_phuket', NOW(), NOW()),
+('staff_pattaya', 'staff.br003@mermed.com', 'staff.br003', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมชาย3', 'ใจดี', '081-000-0003', 'STAFF', 'ACTIVE', 'branch_pattaya', NOW(), NOW()),
+('staff_central', 'staff.br004@mermed.com', 'staff.br004', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมชาย4', 'ใจดี', '081-000-0004', 'STAFF', 'ACTIVE', 'branch_central', NOW(), NOW()),
+('staff_chiangmai', 'staff.br005@mermed.com', 'staff.br005', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมชาย5', 'ใจดี', '081-000-0005', 'STAFF', 'ACTIVE', 'branch_chiangmai', NOW(), NOW());
+
+-- Checker
+INSERT INTO "User" (id, email, username, "passwordHash", "firstName", "lastName", "phoneNumber", role, status, "branchId", "createdAt", "updatedAt") VALUES
+('checker_main', 'checker@mermaid.clinic', 'checker', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'ผู้ตรวจสอบ', 'ยอดเงิน', '081-333-3333', 'CHECKER', 'ACTIVE', 'branch_rama9', NOW(), NOW());
 
 -- Auditor
 INSERT INTO "User" (id, email, username, "passwordHash", "firstName", "lastName", "phoneNumber", role, status, "branchId", "createdAt", "updatedAt") VALUES
-('auditor_main', 'auditor@mermed.com', 'auditor.main', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมหญิง', 'ตรวจสอบ', '081-111-1111', 'AUDITOR', 'ACTIVE', NULL, NOW(), NOW());
+('auditor_main', 'auditor@mermed.com', 'auditor.main', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมหญิง', 'ตรวจสอบ', '081-111-1111', 'AUDIT', 'ACTIVE', NULL, NOW(), NOW());
+
+-- Manager
+INSERT INTO "User" (id, email, username, "passwordHash", "firstName", "lastName", "phoneNumber", role, status, "branchId", "createdAt", "updatedAt") VALUES
+('manager_main', 'manager@mermed.com', 'manager', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'สมพร', 'จัดการ', '081-222-2222', 'MANAGER', 'ACTIVE', NULL, NOW(), NOW());
 
 -- Owner
 INSERT INTO "User" (id, email, username, "passwordHash", "firstName", "lastName", "phoneNumber", role, status, "branchId", "createdAt", "updatedAt") VALUES
@@ -48,7 +57,15 @@ INSERT INTO "User" (id, email, username, "passwordHash", "firstName", "lastName"
 ('admin_main', 'admin@mermed.com', 'admin', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koYV.LnN5n0i', 'ผู้ดูแล', 'ระบบ', '081-888-8888', 'ADMIN', 'ACTIVE', NULL, NOW(), NOW());
 
 -- ============================================
--- 3. SYSTEM CONFIG
+-- 3. MANAGER BRANCH ACCESS
+-- ============================================
+INSERT INTO "ManagerBranchAccess" (id, "userId", "branchId", "createdAt", "createdBy") VALUES
+('mba_1', 'manager_main', 'branch_rama9', NOW(), 'admin_main'),
+('mba_2', 'manager_main', 'branch_phuket', NOW(), 'admin_main'),
+('mba_3', 'manager_main', 'branch_pattaya', NOW(), 'admin_main');
+
+-- ============================================
+-- 4. SYSTEM CONFIG
 -- ============================================
 INSERT INTO "SystemConfig" (id, key, value, description, "dataType", "createdAt", "updatedAt") VALUES
 ('config_1', 'DISCREPANCY_THRESHOLD_PERCENT', '1.0', 'Percentage threshold for discrepancy alerts', 'number', NOW(), NOW()),
@@ -56,7 +73,7 @@ INSERT INTO "SystemConfig" (id, key, value, description, "dataType", "createdAt"
 ('config_3', 'DEPOSIT_VARIANCE_THRESHOLD', '10', 'Acceptable variance for deposit amount (THB)', 'number', NOW(), NOW());
 
 -- ============================================
--- 4. DAILY CLOSINGS
+-- 5. DAILY CLOSINGS
 -- ============================================
 
 -- SUBMITTED (3 รายการ - รอรับเงิน)
@@ -157,7 +174,7 @@ INSERT INTO "DailyClosing" (
  NOW(), NOW());
 
 -- ============================================
--- 5. DEPOSITS (2 รายการ)
+-- 6. DEPOSITS (2 รายการ)
 -- ============================================
 INSERT INTO "Deposit" (
   id, "dailyClosingId", "depositSlipUrl", "depositAmount", "depositDate",
@@ -173,7 +190,7 @@ INSERT INTO "Deposit" (
  'auditor_main', CURRENT_TIMESTAMP - INTERVAL '3 days 1 hour', NOW(), NOW());
 
 -- ============================================
--- 6. AUDIT LOGS (2 รายการตัวอย่าง)
+-- 7. AUDIT LOGS (2 รายการตัวอย่าง)
 -- ============================================
 INSERT INTO "AuditLog" (
   id, "userId", action, "entityType", "entityId",
@@ -192,7 +209,8 @@ INSERT INTO "AuditLog" (
 -- สรุปข้อมูลที่ seed
 -- ============================================
 -- Branches: 5
--- Users: 8 (5 staff, 1 auditor, 1 owner, 1 admin)
+-- Users: 9 (5 staff, 1 checker, 1 auditor, 1 manager, 1 owner, 1 admin)
+-- Manager Branch Access: 3 (Manager has access to Rama9, Phuket, Pattaya)
 -- Daily Closings: 7
 --   - SUBMITTED: 3 (รอรับเงิน)
 --   - CASH_RECEIVED: 2 (รอนำฝาก)
@@ -202,7 +220,9 @@ INSERT INTO "AuditLog" (
 --
 -- Login Credentials:
 --   Staff (Rama9): staff.br001@mermed.com / Staff@2026
+--   Checker: checker@mermaid.clinic / password123
 --   Auditor: auditor@mermed.com / Auditor@2026
+--   Manager: manager@mermed.com / Manager@2026 (Branch Access: Rama9, Phuket, Pattaya)
 --   Owner: owner@mermed.com / Owner@2026
 --   Admin: admin@mermed.com / Admin@2026
 -- ============================================

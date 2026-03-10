@@ -119,8 +119,8 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
 
 function getRoleLabel(role: string): string {
   const labels: Record<string, string> = {
-    STORE_STAFF: 'พนักงานหน้าร้าน',
-    AUDITOR: 'ผู้ตรวจสอบ',
+    STAFF: 'พนักงานหน้าร้าน',
+    AUDIT: 'ผู้ตรวจสอบ',
     OWNER: 'เจ้าของ',
     ADMIN: 'ผู้ดูแลระบบ',
   }

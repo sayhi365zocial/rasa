@@ -19,7 +19,7 @@ export default async function StaffConfirmDepositPage({
     redirect('/login')
   }
 
-  if (currentUser.role !== 'STORE_STAFF' && currentUser.role !== 'ADMIN') {
+  if (currentUser.role !== 'STAFF' && currentUser.role !== 'ADMIN') {
     redirect('/dashboard')
   }
 

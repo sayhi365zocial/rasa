@@ -12,8 +12,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only OWNER and ADMIN can approve deposits
-    if (user.role !== 'OWNER' && user.role !== 'ADMIN') {
+    // Only OWNER can approve deposits
+    if (user.role !== 'OWNER') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

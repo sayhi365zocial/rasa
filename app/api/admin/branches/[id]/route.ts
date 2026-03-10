@@ -15,8 +15,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only ADMIN can update branches
-    if (currentUser.role !== 'ADMIN') {
+    // Only OWNER and ADMIN can update branches
+    if (currentUser.role !== 'OWNER' && currentUser.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -106,8 +106,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only ADMIN can delete branches
-    if (currentUser.role !== 'ADMIN') {
+    // Only OWNER and ADMIN can delete branches
+    if (currentUser.role !== 'OWNER' && currentUser.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

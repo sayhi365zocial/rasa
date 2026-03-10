@@ -142,8 +142,9 @@ export const STATUS_LABELS: Record<ClosingStatus, string> = {
 }
 
 export const ROLE_LABELS: Record<UserRole, string> = {
-  STORE_STAFF: 'พนักงานหน้าร้าน',
-  AUDITOR: 'ผู้ตรวจสอบ',
+  STAFF: 'พนักงานหน้าร้าน',
+  CHECKER: 'ผู้ตรวจสอบยอด',
+  AUDIT: 'ผู้ตรวจสอบเงิน',
   MANAGER: 'ผู้จัดการ',
   OWNER: 'เจ้าของ',
   ADMIN: 'ผู้ดูแลระบบ',

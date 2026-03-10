@@ -38,7 +38,7 @@ export default async function ClosingDetailPage({
 
   // Check permission
   if (
-    currentUser.role === 'STORE_STAFF' &&
+    currentUser.role === 'STAFF' &&
     closing.branchId !== currentUser.branchId
   ) {
     redirect('/dashboard/staff')

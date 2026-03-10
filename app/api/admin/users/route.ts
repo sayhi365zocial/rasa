@@ -13,8 +13,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only ADMIN can manage users
-    if (user.role !== 'ADMIN') {
+    // Only OWNER and ADMIN can manage users
+    if (user.role !== 'OWNER' && user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -69,8 +69,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only ADMIN can create users
-    if (currentUser.role !== 'ADMIN') {
+    // Only OWNER and ADMIN can create users
+    if (currentUser.role !== 'OWNER' && currentUser.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate role
-    const validRoles = ['STORE_STAFF', 'AUDITOR', 'MANAGER', 'OWNER', 'ADMIN']
+    const validRoles = ['STAFF', 'AUDIT', 'MANAGER', 'OWNER', 'ADMIN']
     if (!validRoles.includes(role)) {
       return NextResponse.json(
         { error: 'Invalid role' },
@@ -103,10 +103,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Validate branchId for STORE_STAFF
-    if (role === 'STORE_STAFF' && !branchId) {
+    // Validate branchId for STAFF
+    if (role === 'STAFF' && !branchId) {
       return NextResponse.json(
-        { error: 'Branch is required for STORE_STAFF role' },
+        { error: 'Branch is required for STAFF role' },
         { status: 400 }
       )
     }
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
         phoneNumber: phoneNumber || null,
         role,
         status: 'ACTIVE',
-        branchId: role === 'STORE_STAFF' ? branchId : null,
+        branchId: role === 'STAFF' ? branchId : null,
       },
       include: {
         branch: true,

@@ -98,7 +98,7 @@ export default async function AdminUsersPage() {
             พนักงานหน้าร้าน
           </div>
           <div className="text-3xl font-bold text-blue-600">
-            {users.filter((u: typeof users[0]) => u.role === 'STORE_STAFF').length}
+            {users.filter((u: typeof users[0]) => u.role === 'STAFF').length}
           </div>
           <div className="text-sm text-gray-500 mt-1">คน</div>
         </div>

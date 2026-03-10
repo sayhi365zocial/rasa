@@ -14,7 +14,7 @@ export default async function DepositsListPage() {
     redirect('/login')
   }
 
-  if (currentUser.role !== 'AUDITOR' && currentUser.role !== 'ADMIN') {
+  if (currentUser.role !== 'AUDIT' && currentUser.role !== 'ADMIN') {
     redirect('/dashboard')
   }
 

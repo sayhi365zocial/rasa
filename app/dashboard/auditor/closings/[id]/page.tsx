@@ -21,7 +21,7 @@ export default async function ClosingDetailPage({ params }: PageProps) {
     redirect('/login')
   }
 
-  if (currentUser.role !== 'AUDITOR' && currentUser.role !== 'ADMIN') {
+  if (currentUser.role !== 'AUDIT' && currentUser.role !== 'ADMIN') {
     redirect('/dashboard')
   }
 
