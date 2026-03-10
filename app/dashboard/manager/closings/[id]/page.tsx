@@ -5,6 +5,7 @@ import { STATUS_LABELS, STATUS_COLORS } from '@/lib/types'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { canAccessBranch } from '@/lib/auth/permissions'
 import { SubmitButton } from './submit-button'
+import { ReceiveCashButton } from '@/components/auditor/ReceiveCashButton'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -101,19 +102,39 @@ export default async function ManagerClosingDetailPage({
         </div>
 
         {/* Actions */}
-        {canSubmit && (
-          <div className="mb-6 flex gap-3">
-            <SubmitButton closingId={closing.id} />
-            {canEdit && (
-              <a
-                href={`/dashboard/manager/closings/${closing.id}/edit`}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium"
-              >
-                แก้ไข
-              </a>
-            )}
-          </div>
-        )}
+        <div className="mb-6 flex gap-3 flex-wrap">
+          {canSubmit && (
+            <>
+              <SubmitButton closingId={closing.id} />
+              {canEdit && (
+                <a
+                  href={`/dashboard/manager/closings/${closing.id}/edit`}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium"
+                >
+                  แก้ไข
+                </a>
+              )}
+            </>
+          )}
+
+          {/* Receive Cash Action (Manager can do Audit tasks) */}
+          {closing.status === 'SUBMITTED' && (
+            <ReceiveCashButton
+              closingId={closing.id}
+              amount={closing.handwrittenNetCash.toNumber()}
+            />
+          )}
+
+          {/* Create Deposit Action */}
+          {closing.status === 'CASH_RECEIVED' && (
+            <a
+              href={`/dashboard/manager/deposits/new?closingId=${closing.id}`}
+              className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium"
+            >
+              นำฝากธนาคาร
+            </a>
+          )}
+        </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
