@@ -15,14 +15,13 @@ import * as path from 'path'
 async function globalSetup(config: FullConfig) {
   console.log('\n🚀 Starting E2E Test Suite...\n')
 
-  const baseURL = config.use?.baseURL || 'http://localhost:3000'
+  const baseURL = process.env.BASE_URL || config.projects?.[0]?.use?.baseURL || 'http://localhost:3000'
   const maxRetries = 30
   const retryDelay = 2000
 
   console.log('📋 Configuration:')
   console.log(`  - Base URL: ${baseURL}`)
   console.log(`  - Workers: ${config.workers}`)
-  console.log(`  - Timeout: ${config.timeout}ms`)
   console.log(`  - CI Mode: ${process.env.CI ? 'Yes' : 'No'}`)
 
   // 1. Check if development server is running

@@ -10,13 +10,13 @@ import { Page, expect } from '@playwright/test'
  * @param page - Playwright page object
  * @param email - User email or identifier
  * @param password - User password
- * @param expectedRole - Optional: Expected role to verify redirect (STAFF, AUDIT, MANAGER, OWNER, ADMIN)
+ * @param expectedRole - Optional: Expected role to verify redirect (STAFF, CHECKER, AUDIT, MANAGER, OWNER, ADMIN)
  */
 export async function login(
   page: Page,
   email: string,
   password: string,
-  expectedRole?: 'STAFF' | 'AUDIT' | 'MANAGER' | 'OWNER' | 'ADMIN'
+  expectedRole?: 'STAFF' | 'CHECKER' | 'AUDIT' | 'MANAGER' | 'OWNER' | 'ADMIN'
 ): Promise<void> {
   try {
     // Navigate to login page
@@ -39,6 +39,7 @@ export async function login(
     if (expectedRole) {
       const rolePathMap = {
         STAFF: '/dashboard/staff',
+        CHECKER: '/dashboard/staff',  // CHECKER uses same dashboard as STAFF
         AUDIT: '/dashboard/auditor',
         MANAGER: '/dashboard/manager',
         OWNER: '/dashboard/owner',
@@ -179,10 +180,11 @@ export async function waitForApiCall(
  */
 export async function verifyUserRole(
   page: Page,
-  role: 'STAFF' | 'AUDIT' | 'MANAGER' | 'OWNER' | 'ADMIN'
+  role: 'STAFF' | 'CHECKER' | 'AUDIT' | 'MANAGER' | 'OWNER' | 'ADMIN'
 ): Promise<void> {
   const rolePathMap = {
     STAFF: '/dashboard/staff',
+    CHECKER: '/dashboard/staff',  // CHECKER uses same dashboard as STAFF
     AUDIT: '/dashboard/auditor',
     MANAGER: '/dashboard/manager',
     OWNER: '/dashboard/owner',

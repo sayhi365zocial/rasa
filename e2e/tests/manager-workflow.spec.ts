@@ -49,7 +49,7 @@ test.describe('Manager Workflow', () => {
     await managerDashboard.goto()
 
     // Verify authorized branches are available
-    await managerDashboard.verifyAuthorizedBranches(manager.authorizedBranches)
+    await managerDashboard.verifyAuthorizedBranches([...manager.authorizedBranches])
 
     // Verify branch selector is visible
     await expect(page.locator('select[name="branchId"], select#branch-selector')).toBeVisible()
