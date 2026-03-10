@@ -321,7 +321,7 @@ async function setupTestData() {
     console.log('Audit Logs Created: 2')
     console.log('')
     console.log('Test Branches:')
-    branches.slice(0, 3).forEach((branch, i) => {
+    branches.slice(0, 3).forEach((branch: any, i: number) => {
       console.log(`  ${i + 1}. ${branch.branchName} (${branch.branchCode})`)
     })
     console.log('')
