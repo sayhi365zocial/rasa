@@ -39,7 +39,12 @@ export class OwnerDashboardPage {
   async grantManagerBranchAccess(managerEmail: string, branchCode: string) {
     await this.page.click('a:has-text("Manager Access"), a:has-text("สิทธิ์ผู้จัดการ")')
     await this.page.fill('input[name="managerEmail"]', managerEmail)
-    await this.page.selectOption('select[name="branchId"]', { label: new RegExp(branchCode) })
+    // Find option that contains the branch code
+    const options = await this.page.locator('select[name="branchId"] option').allTextContents()
+    const matchingOption = options.find(opt => opt.includes(branchCode))
+    if (matchingOption) {
+      await this.page.selectOption('select[name="branchId"]', { label: matchingOption })
+    }
     await this.page.click('button[type="submit"]:has-text("Grant Access")')
     await this.page.waitForLoadState('networkidle')
   }
