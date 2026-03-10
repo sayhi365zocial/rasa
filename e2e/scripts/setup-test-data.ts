@@ -38,10 +38,10 @@ async function setupTestData() {
     console.log(`📊 Found ${branches.length} branches and ${users.length} users`)
 
     // Find key users
-    const staffUser = users.find(u => u.role === 'STAFF' && u.branchId === branches[0].id)
-    const auditorUser = users.find(u => u.role === 'AUDIT')
-    const managerUser = users.find(u => u.role === 'MANAGER')
-    const adminUser = users.find(u => u.role === 'ADMIN')
+    const staffUser = users.find((u: any) => u.role === 'STAFF' && u.branchId === branches[0].id)
+    const auditorUser = users.find((u: any) => u.role === 'AUDIT')
+    const managerUser = users.find((u: any) => u.role === 'MANAGER')
+    const adminUser = users.find((u: any) => u.role === 'ADMIN')
 
     if (!staffUser || !auditorUser || !managerUser) {
       console.error('❌ Required users not found! Please run: npm run db:seed')
@@ -143,7 +143,7 @@ async function setupTestData() {
       data: {
         closingDate: yesterday,
         branchId: branches[1].id,
-        submittedBy: users.find(u => u.role === 'STAFF' && u.branchId === branches[1].id)?.id || staffUser.id,
+        submittedBy: users.find((u: any) => u.role === 'STAFF' && u.branchId === branches[1].id)?.id || staffUser.id,
         status: 'SUBMITTED',
         submittedAt: new Date(yesterday.getTime() + 19 * 60 * 60 * 1000),
 
@@ -238,7 +238,7 @@ async function setupTestData() {
     console.log('\n💰 Creating test deposits...')
 
     const bankAccounts = await prisma.companyBankAccount.findMany({ where: { status: 'ACTIVE' } })
-    const defaultBank = bankAccounts.find(b => b.isDefault) || bankAccounts[0]
+    const defaultBank = bankAccounts.find((b: any) => b.isDefault) || bankAccounts[0]
 
     const deposit = await prisma.deposit.create({
       data: {
