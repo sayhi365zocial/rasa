@@ -9,8 +9,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  let currentUser
   try {
-    const currentUser = await getCurrentUser()
+    currentUser = await getCurrentUser()
 
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -99,8 +100,17 @@ export async function POST(
     })
   } catch (error) {
     console.error('Error receiving cash:', error)
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      userId: currentUser?.userId,
+      closingId: params.id,
+    })
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }
