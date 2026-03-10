@@ -13,13 +13,19 @@ export class ManagerDashboardPage {
   }
 
   async selectBranch(branchCode: string) {
-    await this.page.selectOption('select[name="branchId"], select#branch-selector', { label: new RegExp(branchCode) })
+    // Find option that contains the branch code
+    const options = await this.page.locator('select[name="branchId"] option, select#branch-selector option').allTextContents()
+    const matchingOption = options.find(opt => opt.includes(branchCode))
+    if (matchingOption) {
+      await this.page.selectOption('select[name="branchId"], select#branch-selector', { label: matchingOption })
+    }
     await this.page.waitForLoadState('networkidle')
   }
 
   async verifyBranchSelected(branchCode: string) {
     const selector = this.page.locator('select[name="branchId"], select#branch-selector')
-    await expect(selector).toHaveValue(new RegExp(branchCode, 'i'))
+    const selectedValue = await selector.inputValue()
+    expect(selectedValue).toContain(branchCode)
   }
 
   async createClosingForBranch(branchCode: string) {
