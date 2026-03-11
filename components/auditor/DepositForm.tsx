@@ -77,6 +77,13 @@ export function DepositForm({ closings, selectedClosingId, redirectPath = '/dash
     setError(null)
     setUploadProgress(0)
 
+    console.log('Form submission started', {
+      closingId: formData.closingId,
+      bankAccountId: formData.bankAccountId,
+      depositSlipFile: depositSlipFile?.name,
+      selectedBankAccount: selectedBankAccount?.bankName,
+    })
+
     try {
       // Validate form
       if (!formData.closingId) {
@@ -103,14 +110,20 @@ export function DepositForm({ closings, selectedClosingId, redirectPath = '/dash
         body: uploadFormData,
       })
 
+      console.log('Upload response:', uploadResponse.status)
+
       if (!uploadResponse.ok) {
+        const uploadError = await uploadResponse.json()
+        console.error('Upload failed:', uploadError)
         throw new Error('ไม่สามารถอัพโหลดสลิปได้')
       }
 
       const uploadData = await uploadResponse.json()
+      console.log('Upload data:', uploadData)
       setUploadProgress(50)
 
       if (!uploadData.success || !uploadData.data?.url) {
+        console.error('Upload data invalid:', uploadData)
         throw new Error('ไม่สามารถอัพโหลดสลิปได้')
       }
 
@@ -139,11 +152,15 @@ export function DepositForm({ closings, selectedClosingId, redirectPath = '/dash
       }
 
       setUploadProgress(100)
+      console.log('Deposit created successfully, redirecting to:', redirectPath)
 
       // Success - redirect to dashboard
-      router.push(redirectPath)
-      router.refresh()
+      setTimeout(() => {
+        router.push(redirectPath)
+        router.refresh()
+      }, 500)
     } catch (err) {
+      console.error('Deposit form error:', err)
       setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด')
       setIsLoading(false)
       setUploadProgress(0)
