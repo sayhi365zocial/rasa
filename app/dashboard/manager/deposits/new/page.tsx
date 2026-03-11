@@ -4,7 +4,6 @@ import { db } from '@/lib/db'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { DepositForm } from '@/components/auditor/DepositForm'
-import { canAccessBranch } from '@/lib/auth/permissions'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -96,12 +95,8 @@ export default async function ManagerNewDepositPage({ searchParams }: PageProps)
     }
 
     // Check if manager has access to this branch
-    const hasAccess = await canAccessBranch(
-      currentUser.userId,
-      currentUser.role,
-      dbSelectedClosing.branchId,
-      currentUser.branchId
-    )
+    // Use the same access check pattern as the main dashboard for consistency
+    const hasAccess = authorizedBranchIds.includes(dbSelectedClosing.branchId)
 
     console.log('Manager deposits/new - Access check:', {
       userId: currentUser.userId,
