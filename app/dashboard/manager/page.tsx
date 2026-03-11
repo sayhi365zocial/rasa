@@ -32,10 +32,20 @@ export default async function ManagerDashboardPage() {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
+  // Get manager's authorized branches
+  const authorizedBranches = await db.managerBranchAccess.findMany({
+    where: { userId: currentUser.userId },
+    select: { branchId: true },
+  })
+  const authorizedBranchIds = authorizedBranches.map((access: any) => access.branchId)
+
   // Get closings waiting for cash collection (SUBMITTED)
   const pendingCollection = await db.dailyClosing.findMany({
     where: {
       status: 'SUBMITTED',
+      branchId: {
+        in: authorizedBranchIds,
+      },
     },
     include: {
       branch: true,
@@ -56,6 +66,9 @@ export default async function ManagerDashboardPage() {
   const pendingDeposit = await db.dailyClosing.findMany({
     where: {
       status: 'CASH_RECEIVED',
+      branchId: {
+        in: authorizedBranchIds,
+      },
     },
     include: {
       branch: true,
@@ -66,26 +79,36 @@ export default async function ManagerDashboardPage() {
     take: 20,
   })
 
-  // Get stats
+  // Get stats (filtered by authorized branches)
   const stats = {
     pendingCollection: await db.dailyClosing.count({
-      where: { status: 'SUBMITTED' },
+      where: {
+        status: 'SUBMITTED',
+        branchId: { in: authorizedBranchIds },
+      },
     }),
     pendingDeposit: await db.dailyClosing.count({
-      where: { status: 'CASH_RECEIVED' },
+      where: {
+        status: 'CASH_RECEIVED',
+        branchId: { in: authorizedBranchIds },
+      },
     }),
     completedToday: await db.dailyClosing.count({
       where: {
         status: 'DEPOSITED',
+        branchId: { in: authorizedBranchIds },
         updatedAt: {
           gte: today,
         },
       },
     }),
     totalCashToCollect: await db.dailyClosing.aggregate({
-      where: { status: 'SUBMITTED' },
+      where: {
+        status: 'SUBMITTED',
+        branchId: { in: authorizedBranchIds },
+      },
       _sum: {
-        handwrittenNetCash: true,
+        handwrittenCashCount: true,
       },
     }),
   }
@@ -196,7 +219,7 @@ export default async function ManagerDashboardPage() {
             เงินที่ต้องเก็บ
           </div>
           <div className="text-2xl font-bold text-blue-600">
-            {formatCurrency(stats.totalCashToCollect._sum.handwrittenNetCash?.toNumber() || 0)}
+            {formatCurrency(stats.totalCashToCollect._sum.handwrittenCashCount?.toNumber() || 0)}
           </div>
           <div className="text-sm text-gray-500 mt-1">บาท</div>
         </div>
