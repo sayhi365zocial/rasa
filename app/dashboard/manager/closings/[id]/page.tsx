@@ -121,7 +121,8 @@ export default async function ManagerClosingDetailPage({
           {closing.status === 'SUBMITTED' && (
             <ReceiveCashButton
               closingId={closing.id}
-              amount={closing.handwrittenNetCash.toNumber()}
+              amount={closing.handwrittenCashCount.toNumber()}
+              hasDiscrepancy={closing.hasDiscrepancy}
             />
           )}
 
@@ -163,33 +164,24 @@ export default async function ManagerClosingDetailPage({
           </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-1">เงินสดสุทธิ</div>
+            <div className="text-sm text-gray-600 mb-1">เงินสดนับได้</div>
             <div className="text-xl font-bold text-gray-900">
-              {formatCurrency(closing.handwrittenNetCash.toNumber())}
+              {formatCurrency(closing.handwrittenCashCount.toNumber())}
             </div>
           </div>
         </div>
 
-        {/* Discrepancy Alert */}
-        {closing.hasDiscrepancy && (
+        {/* Discrepancy Alert - Only show if there's a remark */}
+        {closing.discrepancyRemark && (
           <div className="mb-8 bg-orange-50 border border-orange-200 rounded-lg p-4">
             <h3 className="font-semibold text-orange-900 mb-2">
-              ⚠️ พบความผิดปกติ
+              ⚠️ หมายเหตุ
             </h3>
-            <p className="text-sm text-orange-800 mb-2">
-              ยอดบัตรเครดิต POS กับ EDC ต่างกัน{' '}
-              {formatCurrency(closing.posCreditVsEdcDiff?.toNumber() || 0)} บาท
-            </p>
-            {closing.discrepancyRemark && (
-              <div className="mt-3 bg-white rounded p-3">
-                <div className="text-sm font-medium text-gray-700 mb-1">
-                  หมายเหตุ:
-                </div>
-                <div className="text-sm text-gray-900">
-                  {closing.discrepancyRemark}
-                </div>
+            <div className="bg-white rounded p-3">
+              <div className="text-sm text-gray-900">
+                {closing.discrepancyRemark}
               </div>
-            )}
+            </div>
           </div>
         )}
 
@@ -303,7 +295,7 @@ export default async function ManagerClosingDetailPage({
             <div>
               <div className="text-sm text-gray-600 mb-1">เงินสดสุทธิ</div>
               <div className="text-lg font-semibold text-green-600">
-                {formatCurrency(closing.handwrittenNetCash.toNumber())}
+                {formatCurrency(closing.handwrittenCashCount.toNumber())}
               </div>
             </div>
           </div>
@@ -325,88 +317,6 @@ export default async function ManagerClosingDetailPage({
                     )
                   )}
                 </ul>
-              </div>
-            )}
-        </div>
-
-        {/* EDC Data */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              💳 ข้อมูล EDC
-            </h2>
-            {closing.edcImageUrl && (
-              <a
-                href={closing.edcImageUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-              >
-                ดูรูปภาพ →
-              </a>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            <div>
-              <div className="text-sm text-gray-600 mb-1">ยอดรวม EDC</div>
-              <div className="text-lg font-semibold text-gray-900">
-                {formatCurrency(closing.edcTotalAmount.toNumber())}
-              </div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-600 mb-1">Batch Number</div>
-              <div className="text-sm text-gray-900">
-                {closing.edcBatchNumber || '-'}
-              </div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-600 mb-1">
-                วันที่ Settlement
-              </div>
-              <div className="text-sm text-gray-900">
-                {closing.edcSettlementDate
-                  ? formatDate(closing.edcSettlementDate)
-                  : '-'}
-              </div>
-            </div>
-          </div>
-
-          {closing.edcBreakdown &&
-            Array.isArray(closing.edcBreakdown) &&
-            closing.edcBreakdown.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="text-sm font-medium text-gray-700 mb-2">
-                  รายละเอียดบัตร:
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-3 py-2 text-left text-gray-700">
-                          ประเภทบัตร
-                        </th>
-                        <th className="px-3 py-2 text-right text-gray-700">
-                          จำนวนเงิน
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {(closing.edcBreakdown as any[]).map(
-                        (item: any, i: number) => (
-                          <tr key={i}>
-                            <td className="px-3 py-2 text-gray-900">
-                              {item.cardType || '-'}
-                            </td>
-                            <td className="px-3 py-2 text-right text-gray-900">
-                              {formatCurrency(item.amount || 0)}
-                            </td>
-                          </tr>
-                        )
-                      )}
-                    </tbody>
-                  </table>
-                </div>
               </div>
             )}
         </div>
