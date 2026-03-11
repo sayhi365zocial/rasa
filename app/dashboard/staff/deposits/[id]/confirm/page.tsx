@@ -88,7 +88,7 @@ export default async function StaffConfirmDepositPage({
     )
   }
 
-  const submittedAmount = deposit.dailyClosing.handwrittenNetCash.toNumber()
+  const submittedAmount = deposit.dailyClosing.handwrittenCashCount.toNumber()
   const depositedAmount = deposit.depositAmount.toNumber()
   const difference = depositedAmount - submittedAmount
   const hasVariance = Math.abs(difference) > 0.01

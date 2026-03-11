@@ -306,7 +306,7 @@ export default async function StaffDashboardPage() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {pendingStaffConfirmation.map((deposit: typeof pendingStaffConfirmation[0]) => {
-                  const submittedAmount = deposit.dailyClosing.handwrittenNetCash.toNumber()
+                  const submittedAmount = deposit.dailyClosing.handwrittenCashCount.toNumber()
                   const depositedAmount = deposit.depositAmount.toNumber()
                   const difference = depositedAmount - submittedAmount
                   const hasVariance = Math.abs(difference) > 0.01
