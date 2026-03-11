@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       data: {
         dailyClosingId: closingId,
         depositSlipUrl,
-        depositAmount: dailyClosing.handwrittenNetCash,
+        depositAmount: dailyClosing.handwrittenCashCount,
         depositDate: new Date(depositDate),
         bankName,
         accountNumber,
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
         fieldName: 'status',
         oldValue: null,
         newValue: 'PENDING',
-        remark: `นำฝากเงินจากสาขา ${dailyClosing.branch.branchName} จำนวน ${dailyClosing.handwrittenNetCash.toNumber()} บาท`,
+        remark: `นำฝากเงินจากสาขา ${dailyClosing.branch.branchName} จำนวน ${dailyClosing.handwrittenCashCount.toNumber()} บาท`,
       },
     })
 

@@ -133,7 +133,9 @@ export function DepositForm({ closings, selectedClosingId, redirectPath = '/dash
       const depositData = await depositResponse.json()
 
       if (!depositResponse.ok) {
-        throw new Error(depositData.error || 'เกิดข้อผิดพลาด')
+        console.error('Deposit creation failed:', depositData)
+        const errorMessage = depositData.error?.message || depositData.error || 'เกิดข้อผิดพลาด'
+        throw new Error(errorMessage)
       }
 
       setUploadProgress(100)
