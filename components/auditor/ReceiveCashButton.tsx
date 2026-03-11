@@ -7,23 +7,15 @@ import { formatCurrency } from '@/lib/utils'
 interface ReceiveCashButtonProps {
   closingId: string
   amount: number
-  hasDiscrepancy?: boolean
 }
 
-export function ReceiveCashButton({ closingId, amount, hasDiscrepancy }: ReceiveCashButtonProps) {
+export function ReceiveCashButton({ closingId, amount }: ReceiveCashButtonProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [discrepancyNote, setDiscrepancyNote] = useState('')
 
   const handleReceiveCash = async () => {
-    // Validate discrepancy note if there's a discrepancy
-    if (hasDiscrepancy && !discrepancyNote.trim()) {
-      setError('กรุณาระบุหมายเหตุเมื่อพบความผิดปกติ')
-      return
-    }
-
     setIsLoading(true)
     setError(null)
 
@@ -33,9 +25,7 @@ export function ReceiveCashButton({ closingId, amount, hasDiscrepancy }: Receive
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          discrepancyNote: discrepancyNote.trim() || undefined,
-        }),
+        body: JSON.stringify({}),
       })
 
       const data = await response.json()
@@ -76,22 +66,6 @@ export function ReceiveCashButton({ closingId, amount, hasDiscrepancy }: Receive
         </div>
       </div>
 
-      {hasDiscrepancy && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-yellow-900 mb-2">
-            พบความผิดปกติ - กรุณาระบุหมายเหตุ *
-          </label>
-          <textarea
-            value={discrepancyNote}
-            onChange={(e) => setDiscrepancyNote(e.target.value)}
-            placeholder="ระบุหมายเหตุเกี่ยวกับความผิดปกติที่พบ..."
-            className="w-full px-3 py-2 border border-yellow-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm"
-            rows={3}
-            disabled={isLoading}
-          />
-        </div>
-      )}
-
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
           <div className="text-sm text-red-800">{error}</div>
@@ -110,7 +84,6 @@ export function ReceiveCashButton({ closingId, amount, hasDiscrepancy }: Receive
           onClick={() => {
             setShowConfirm(false)
             setError(null)
-            setDiscrepancyNote('')
           }}
           disabled={isLoading}
           className="w-full px-4 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 rounded-md"

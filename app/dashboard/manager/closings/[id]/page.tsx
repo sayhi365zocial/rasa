@@ -122,7 +122,6 @@ export default async function ManagerClosingDetailPage({
             <ReceiveCashButton
               closingId={closing.id}
               amount={closing.handwrittenCashCount.toNumber()}
-              hasDiscrepancy={closing.hasDiscrepancy}
             />
           )}
 
