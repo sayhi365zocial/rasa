@@ -83,7 +83,15 @@ export default async function ManagerNewDepositPage({ searchParams }: PageProps)
       },
     })
 
+    console.log('Manager deposits/new - Closing lookup:', {
+      closingId: searchParams.closingId,
+      found: !!dbSelectedClosing,
+      status: dbSelectedClosing?.status,
+      branchId: dbSelectedClosing?.branchId,
+    })
+
     if (!dbSelectedClosing || dbSelectedClosing.status !== 'CASH_RECEIVED') {
+      console.log('Manager deposits/new - Redirecting: closing not found or invalid status')
       redirect('/dashboard/manager')
     }
 
@@ -95,7 +103,17 @@ export default async function ManagerNewDepositPage({ searchParams }: PageProps)
       currentUser.branchId
     )
 
+    console.log('Manager deposits/new - Access check:', {
+      userId: currentUser.userId,
+      role: currentUser.role,
+      branchId: dbSelectedClosing.branchId,
+      userBranchId: currentUser.branchId,
+      hasAccess,
+      authorizedBranchIds,
+    })
+
     if (!hasAccess) {
+      console.log('Manager deposits/new - Redirecting: no branch access')
       redirect('/dashboard/manager')
     }
 
