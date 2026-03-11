@@ -148,6 +148,7 @@ export default async function ManagerNewDepositPage({ searchParams }: PageProps)
             <DepositForm
               closings={availableClosings}
               selectedClosingId={selectedClosing?.id}
+              redirectPath="/dashboard/manager"
             />
           </div>
         </div>

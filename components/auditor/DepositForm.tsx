@@ -29,9 +29,10 @@ interface BankAccount {
 interface DepositFormProps {
   closings: Closing[]
   selectedClosingId?: string
+  redirectPath?: string
 }
 
-export function DepositForm({ closings, selectedClosingId }: DepositFormProps) {
+export function DepositForm({ closings, selectedClosingId, redirectPath = '/dashboard/auditor' }: DepositFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -137,8 +138,8 @@ export function DepositForm({ closings, selectedClosingId }: DepositFormProps) {
 
       setUploadProgress(100)
 
-      // Success - redirect to auditor dashboard
-      router.push('/dashboard/auditor')
+      // Success - redirect to dashboard
+      router.push(redirectPath)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด')
@@ -316,7 +317,7 @@ export function DepositForm({ closings, selectedClosingId }: DepositFormProps) {
           {isLoading ? 'กำลังบันทึก...' : 'บันทึกการนำฝาก'}
         </button>
         <a
-          href="/dashboard/auditor"
+          href={redirectPath}
           className="px-6 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
         >
           ยกเลิก
