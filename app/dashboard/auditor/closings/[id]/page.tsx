@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { ReceiveCashButton } from '@/components/auditor/ReceiveCashButton'
+import { VerifySalesButton } from '@/components/auditor/VerifySalesButton'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -290,14 +291,42 @@ export default async function ClosingDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Action Button */}
+          {/* Action Buttons */}
           {closing.status === 'SUBMITTED' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <ReceiveCashButton
-                closingId={closing.id}
-                amount={closing.handwrittenNetCash.toNumber()}
-              />
-            </div>
+            <>
+              {/* ยืนยันยอดขาย */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">
+                  ยืนยันยอดขาย
+                </h3>
+                {closing.verifiedAt ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="text-sm text-green-800 font-medium">
+                      ✓ ยืนยันแล้ว
+                    </div>
+                    <div className="text-xs text-green-700 mt-1">
+                      {formatDate(closing.verifiedAt)}
+                    </div>
+                  </div>
+                ) : (
+                  <VerifySalesButton
+                    closingId={closing.id}
+                    totalSales={closing.posTotalSales.toNumber()}
+                  />
+                )}
+              </div>
+
+              {/* รับเงินสด */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">
+                  รับเงินสด
+                </h3>
+                <ReceiveCashButton
+                  closingId={closing.id}
+                  amount={closing.handwrittenNetCash.toNumber()}
+                />
+              </div>
+            </>
           )}
 
           {closing.status === 'CASH_RECEIVED' && (
