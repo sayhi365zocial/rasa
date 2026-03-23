@@ -16,7 +16,7 @@ export default async function ManagerDashboardPage() {
     redirect('/login')
   }
 
-  if (currentUser.role !== 'MANAGER' && currentUser.role !== 'ADMIN') {
+  if (currentUser.role !== 'MANAGER' && currentUser.role !== 'ADMIN' && currentUser.role !== 'OWNER') {
     redirect('/dashboard')
   }
 
@@ -35,7 +35,7 @@ export default async function ManagerDashboardPage() {
   // Get manager's authorized branches (ADMIN and OWNER can see all branches)
   let authorizedBranchIds: string[] = []
 
-  if (currentUser.role === 'ADMIN' || currentUser.role === 'OWNER') {
+  if (user.role === 'ADMIN' || user.role === 'OWNER') {
     // ADMIN and OWNER can see all branches
     const allBranches = await db.branch.findMany({
       where: { status: 'ACTIVE' },
