@@ -18,10 +18,10 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only OWNER can confirm bank receipt
-    if (user.role !== 'OWNER') {
+    // Only OWNER and ADMIN can confirm bank receipt
+    if (user.role !== 'OWNER' && user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: 'เฉพาะเจ้าของเท่านั้นที่สามารถยืนยันการรับเงินเข้าบัญชีได้' },
+        { error: 'เฉพาะเจ้าของและผู้ดูแลระบบเท่านั้นที่สามารถยืนยันการรับเงินเข้าบัญชีได้' },
         { status: 403 }
       )
     }

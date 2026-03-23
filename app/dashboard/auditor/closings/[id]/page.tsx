@@ -319,11 +319,11 @@ export default async function ClosingDetailPage({ params }: PageProps) {
               {/* รับเงินสด */}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  รับเงินสด
+                  ยืนยันการรับเงินสด
                 </h3>
                 <ReceiveCashButton
                   closingId={closing.id}
-                  amount={closing.handwrittenNetCash.toNumber()}
+                  amount={closing.handwrittenCashCount.toNumber()}
                 />
               </div>
             </>

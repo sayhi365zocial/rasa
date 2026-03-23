@@ -32,12 +32,24 @@ export default async function ManagerDashboardPage() {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  // Get manager's authorized branches
-  const authorizedBranches = await db.managerBranchAccess.findMany({
-    where: { userId: currentUser.userId },
-    select: { branchId: true },
-  })
-  const authorizedBranchIds = authorizedBranches.map((access: any) => access.branchId)
+  // Get manager's authorized branches (ADMIN and OWNER can see all branches)
+  let authorizedBranchIds: string[] = []
+
+  if (currentUser.role === 'ADMIN' || currentUser.role === 'OWNER') {
+    // ADMIN and OWNER can see all branches
+    const allBranches = await db.branch.findMany({
+      where: { status: 'ACTIVE' },
+      select: { id: true },
+    })
+    authorizedBranchIds = allBranches.map((branch: any) => branch.id)
+  } else {
+    // MANAGER can only see authorized branches
+    const authorizedBranches = await db.managerBranchAccess.findMany({
+      where: { userId: currentUser.userId },
+      select: { branchId: true },
+    })
+    authorizedBranchIds = authorizedBranches.map((access: any) => access.branchId)
+  }
 
   // Get closings waiting for cash collection (SUBMITTED)
   const pendingCollection = await db.dailyClosing.findMany({
@@ -237,7 +249,11 @@ export default async function ManagerDashboardPage() {
 
       {/* Branch Daily Status - Today */}
       <div className="mb-8">
-        <BranchDailyStatusTable initialDate={todayDate} initialBranchStatuses={branchStatuses} />
+        <BranchDailyStatusTable
+          initialDate={todayDate}
+          initialBranchStatuses={branchStatuses}
+          userRole={user.role}
+        />
       </div>
 
       {/* Pending Cash Collection */}

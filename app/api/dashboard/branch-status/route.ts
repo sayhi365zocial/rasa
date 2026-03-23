@@ -19,9 +19,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Only AUDIT and OWNER can access
+    // Only AUDIT, MANAGER, ADMIN and OWNER can access
     if (
       currentUser.role !== 'AUDIT' &&
+      currentUser.role !== 'MANAGER' &&
+      currentUser.role !== 'ADMIN' &&
       currentUser.role !== 'OWNER'
     ) {
       return NextResponse.json(

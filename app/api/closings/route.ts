@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Only STAFF, CHECKER, MANAGER, and OWNER can create closings
-    if (!['STAFF', 'CHECKER', 'MANAGER', 'OWNER'].includes(user.role)) {
+    // Only STAFF, CHECKER, MANAGER, ADMIN, and OWNER can create closings
+    if (!['STAFF', 'CHECKER', 'MANAGER', 'ADMIN', 'OWNER'].includes(user.role)) {
       return NextResponse.json(
         { success: false, error: { code: 'FORBIDDEN', message: 'Insufficient permissions' } },
         { status: 403 }
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      // Owner can create for any branch
+      // Owner and Admin can create for any branch
       branchId = data.branchId || user.branchId
     }
 

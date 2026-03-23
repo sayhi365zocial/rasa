@@ -306,6 +306,7 @@ export default async function OwnerDashboardPage() {
           initialYear={currentYear}
           initialMonth={currentMonth}
           initialBranchStatuses={branchMonthlyStatuses}
+          userRole={user.role}
         />
       </div>
 

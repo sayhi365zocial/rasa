@@ -19,6 +19,7 @@ interface BranchMonthlyStatusGridProps {
   initialYear: number
   initialMonth: number
   initialBranchStatuses: BranchMonthlyStatus[]
+  userRole?: string
 }
 
 const STATUS_COLORS = {
@@ -43,6 +44,7 @@ export function BranchMonthlyStatusGrid({
   initialYear,
   initialMonth,
   initialBranchStatuses,
+  userRole = 'AUDIT',
 }: BranchMonthlyStatusGridProps) {
   const [selectedYear, setSelectedYear] = useState(initialYear)
   const [selectedMonth, setSelectedMonth] = useState(initialMonth)
@@ -196,7 +198,11 @@ export function BranchMonthlyStatusGrid({
                     >
                       {dayStatus.closingId ? (
                         <a
-                          href={`/dashboard/auditor/closings/${dayStatus.closingId}`}
+                          href={
+                            userRole === 'MANAGER' || userRole === 'ADMIN' || userRole === 'OWNER'
+                              ? `/dashboard/manager/closings/${dayStatus.closingId}`
+                              : `/dashboard/auditor/closings/${dayStatus.closingId}`
+                          }
                           className={`block w-full h-8 ${bgColor} rounded hover:opacity-80 transition-opacity`}
                           title={`${index + 1} - ${status ? STATUS_LABELS[status as keyof typeof STATUS_LABELS] : 'ยังไม่ส่ง'}`}
                         />

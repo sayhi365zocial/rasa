@@ -18,10 +18,10 @@ export const PERMISSIONS = {
   CREATE_DEPOSIT: ['AUDIT', 'MANAGER', 'OWNER'],
 
   // ยืนยันยอดฝากธนาคาร
-  CONFIRM_BANK_DEPOSIT: ['STAFF', 'OWNER'],
+  CONFIRM_BANK_DEPOSIT: ['STAFF', 'OWNER', 'ADMIN'],
 
   // ดูรายงานสรุปการขาย
-  VIEW_REPORTS: ['OWNER'],
+  VIEW_REPORTS: ['OWNER', 'ADMIN'],
 
   // จัดการพนักงาน
   MANAGE_USERS: ['OWNER', 'ADMIN'],
@@ -70,8 +70,8 @@ export async function canAccessBranch(
   branchId: string,
   userBranchId?: string | null
 ): Promise<boolean> {
-  // Owner can access all branches
-  if (role === 'OWNER') return true
+  // Owner and Admin can access all branches
+  if (role === 'OWNER' || role === 'ADMIN') return true
 
   // Manager must have explicit access
   if (role === 'MANAGER') {
@@ -88,7 +88,7 @@ export async function canAccessBranch(
     return userBranchId === branchId
   }
 
-  // Admin has no branch access
+  // Default deny
   return false
 }
 

@@ -16,6 +16,7 @@ interface BranchStatus {
 interface BranchDailyStatusTableProps {
   initialDate: Date
   initialBranchStatuses: BranchStatus[]
+  userRole?: string
 }
 
 const STATUS_CONFIG = {
@@ -54,6 +55,7 @@ const STATUS_CONFIG = {
 export function BranchDailyStatusTable({
   initialDate,
   initialBranchStatuses,
+  userRole = 'AUDIT',
 }: BranchDailyStatusTableProps) {
   const router = useRouter()
   const [selectedDate, setSelectedDate] = useState(
@@ -67,13 +69,18 @@ export function BranchDailyStatusTable({
     setIsLoading(true)
 
     try {
+      console.log('Fetching branch status for date:', newDate)
       const response = await fetch(
         `/api/dashboard/branch-status?date=${newDate}`
       )
       const data = await response.json()
 
+      console.log('API response:', data)
+
       if (data.success) {
         setBranchStatuses(data.data.branchStatuses)
+      } else {
+        console.error('API error:', data.error)
       }
     } catch (error) {
       console.error('Error fetching branch status:', error)
@@ -180,7 +187,11 @@ export function BranchDailyStatusTable({
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     {branch.closingId ? (
                       <a
-                        href={`/dashboard/auditor/closings/${branch.closingId}`}
+                        href={
+                          userRole === 'MANAGER' || userRole === 'ADMIN'
+                            ? `/dashboard/manager/closings/${branch.closingId}`
+                            : `/dashboard/auditor/closings/${branch.closingId}`
+                        }
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                       >
                         ดูรายละเอียด →

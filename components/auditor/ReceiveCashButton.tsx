@@ -57,12 +57,19 @@ export function ReceiveCashButton({ closingId, amount }: ReceiveCashButtonProps)
   return (
     <div className="space-y-4">
       <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-        <div className="text-sm text-orange-800 mb-2">ยืนยันการรับเงินสด</div>
-        <div className="text-2xl font-bold text-orange-900">
-          {formatCurrency(amount)}
+        <div className="text-sm font-medium text-orange-800 mb-3">
+          ยืนยันการรับเงินสด
         </div>
-        <div className="text-xs text-orange-700 mt-1">
-          (เฉพาะเงินสด)
+        <div className="space-y-2">
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm text-orange-700">รับเงินสดจำนวน:</span>
+            <span className="text-2xl font-bold text-orange-900">
+              {formatCurrency(amount)}
+            </span>
+          </div>
+          <div className="text-xs text-orange-600 bg-orange-100 px-3 py-2 rounded">
+            💰 จำนวนเงินสดที่ Auditor ต้องรับจากสาขา
+          </div>
         </div>
       </div>
 

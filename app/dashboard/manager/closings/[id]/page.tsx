@@ -21,7 +21,7 @@ export default async function ManagerClosingDetailPage({
     redirect('/login')
   }
 
-  if (currentUser.role !== 'MANAGER') {
+  if (currentUser.role !== 'MANAGER' && currentUser.role !== 'ADMIN') {
     redirect('/dashboard')
   }
 

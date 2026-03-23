@@ -273,8 +273,10 @@ export default function NewClosingPage() {
       // Redirect based on who submitted
       if (isManagerFlow) {
         router.push('/dashboard/manager')
+        router.refresh() // Force refresh to fetch new data
       } else {
         router.push('/dashboard/staff')
+        router.refresh() // Force refresh to fetch new data
       }
     } catch (err) {
       console.error('Submit error:', err)
@@ -973,53 +975,20 @@ export default function NewClosingPage() {
                 </div>
               </div>
 
-              {/* Discrepancy Check */}
-              {(() => {
-                const posCreditVsEdcDiff = Math.abs(
-                  (editedData.pos?.credit || 0) - (editedData.edc?.totalAmount || 0)
-                )
-                const hasDiscrepancy = posCreditVsEdcDiff > 50
+              {/* Summary message */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">
+                  สิ่งที่ต้องทำ : คนบันอกครั่งมน
+                </h4>
+              </div>
 
-                return hasDiscrepancy ? (
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-orange-900 mb-2">
-                      ⚠️ พบความผิดปกติ
-                    </h4>
-                    <p className="text-sm text-orange-800 mb-3">
-                      ยอดบัตรเครดิต POS กับ EDC ต่างกัน{' '}
-                      {posCreditVsEdcDiff.toLocaleString('th-TH', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}{' '}
-                      บาท
-                    </p>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        หมายเหตุ (จำเป็น)
-                      </label>
-                      <textarea
-                        value={editedData.discrepancyRemark || ''}
-                        onChange={(e) => setEditedData({
-                          ...editedData,
-                          discrepancyRemark: e.target.value
-                        })}
-                        rows={3}
-                        placeholder="กรุณาระบุสาเหตุของความผิดปกติ..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                    <p className="text-green-800 font-medium">
-                      ✓ ข้อมูลถูกต้อง ไม่พบความผิดปกติ
-                    </p>
-                  </div>
-                )
-              })()}
-
-              {/* Detail Table */}
+              {/* Summary - สิ่งที่ต้องทำ : เพิ่มยอดที่หักไปในบัญชีบัตรเครดิต */}
               <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3">
+                  <h4 className="text-sm font-semibold text-gray-900">
+                    สิ่งที่ต้องทำ : เพิ่มยอดที่หักไปในบัญชีบัตรเครดิต
+                  </h4>
+                </div>
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
@@ -1052,6 +1021,16 @@ export default function NewClosingPage() {
                         })}
                       </td>
                     </tr>
+                    <tr className="bg-red-50">
+                      <td className="px-4 py-3 text-sm text-red-700 font-medium">
+                        หักค่าธรรมเนียมบัตรเครดิต (3%)
+                      </td>
+                      <td className="px-4 py-3 text-sm text-red-700 text-right font-medium">
+                        -{((editedData.pos?.credit || 0) * 0.03).toLocaleString('th-TH', {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                    </tr>
                     <tr>
                       <td className="px-4 py-3 text-sm text-gray-900">
                         โอนเงิน (POS)
@@ -1062,23 +1041,12 @@ export default function NewClosingPage() {
                         })}
                       </td>
                     </tr>
-                    {/* Comment: ยอด EDC - ไม่แสดงตอนนี้เพราะมีค่าบัตรเครดิตแยกแล้ว */}
-                    {/* <tr>
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        ยอด EDC
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                        {(editedData.edc?.totalAmount || 0).toLocaleString('th-TH', {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                    </tr> */}
                     <tr>
                       <td className="px-4 py-3 text-sm text-gray-900">
-                        นับเงินสด (ลายมือ)
+                        บัตรกำนัล (คานัลย์)
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                        {(editedData.handwritten?.cashCount || 0).toLocaleString('th-TH', {
+                        {(editedData.otherIncome || 0).toLocaleString('th-TH', {
                           minimumFractionDigits: 2,
                         })}
                       </td>
